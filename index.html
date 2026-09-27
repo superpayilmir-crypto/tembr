@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141312">
+<title>Тембр</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --steel:#141312; --iron:#1c1a18; --iron2:#252220; --iron3:#2f2b28; --rivet:#3b3632;
+  --bone:#efe6d8; --ash:#a89f91; --smoke:#71695f;
+  --brick:#b4532f; --brick-deep:#6e2d18; --edison:#f3b35b; --edison-ink:#231606; --glow:rgba(243,179,91,.18);
+  --patina:#86bba6; --patina-bg:rgba(134,187,166,.13);
+  --display:"Oswald","Arial Narrow",Impact,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --concrete:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .6 0 0 0 0 .56 0 0 0 0 .5 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--steel) var(--concrete);color:var(--bone);font:15px/1.5 var(--body);overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--edison);outline-offset:2px}
+img{max-width:100%;display:block}
+svg{display:block}
+a{color:inherit}
+
+/* ---------- shell ---------- */
+.app{height:100%;display:grid;grid-template-columns:248px 1fr;grid-template-rows:1fr auto;padding-top:var(--sat)}
+.side{grid-row:1/3;background:var(--iron);border-right:1px solid var(--rivet);padding:24px 16px calc(24px + var(--sab));display:flex;flex-direction:column;gap:28px;position:relative}
+.side::after{content:"";position:absolute;top:0;right:-1px;width:1px;height:100%;background:linear-gradient(var(--rivet),transparent)}
+.logo{display:flex;align-items:center;gap:11px;padding-inline:6px}
+.logo-mark{width:34px;height:34px;display:grid;place-items:center;background:var(--brick);position:relative}
+.logo-mark::before,.logo-mark::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:var(--brick-deep);top:3px;left:3px;box-shadow:24px 0 var(--brick-deep),0 24px var(--brick-deep),24px 24px var(--brick-deep)}
+.logo-word{font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+.logo-sub{font-family:var(--mono);font-size:10px;color:var(--smoke);letter-spacing:.14em;text-transform:uppercase;display:block;margin-top:3px}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nav button{display:flex;align-items:center;gap:13px;padding:11px 12px;color:var(--ash);font-weight:600;text-align:left;width:100%;border-left:3px solid transparent}
+.nav button:hover{color:var(--bone);background:var(--iron2)}
+.nav button[aria-current="page"]{color:var(--bone);border-left-color:var(--edison);background:linear-gradient(90deg,var(--glow),transparent 80%)}
+.nav svg{width:21px;height:21px;flex:none}
+.nav-label{font-family:var(--display);font-size:15px;letter-spacing:.09em;text-transform:uppercase;font-weight:500}
+.side-plate{margin-top:auto;border:1px solid var(--rivet);padding:12px 14px;font-size:12.5px;color:var(--ash);line-height:1.5;background:var(--iron2)}
+.side-plate b{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--smoke);font-weight:500;margin-bottom:4px}
+
+.main{grid-column:2;grid-row:1;overflow:auto;min-width:0;scroll-behavior:smooth}
+.page{padding:30px 36px 48px;display:flex;flex-direction:column;gap:34px;max-width:1240px}
+
+/* ---------- type ---------- */
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;margin:0;text-wrap:balance;font-weight:600}
+h1{font-size:44px;line-height:1;letter-spacing:.015em}
+h2{font-size:20px;letter-spacing:.08em;font-weight:500}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--edison)}
+.lead{margin:0;color:var(--ash);max-width:62ch}
+.sec{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--rivet);padding-bottom:10px}
+.sec-head h2{display:flex;align-items:center;gap:10px}
+.sec-head h2::before{content:"";width:8px;height:8px;background:var(--brick);flex:none}
+.link{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash)}
+.link:hover{color:var(--edison)}
+
+/* ---------- hero: brick wall + edison bulb ---------- */
+.hero{position:relative;overflow:hidden;min-height:260px;padding:34px 36px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;background-color:#5b2716;
+  background-image:
+    radial-gradient(ellipse 60% 90% at 78% 0%,rgba(255,196,110,.42),transparent 60%),
+    linear-gradient(180deg,rgba(20,19,18,.05),rgba(20,19,18,.88) 92%),
+    repeating-linear-gradient(0deg,transparent 0 30px,#2a1911 30px 33px),
+    repeating-linear-gradient(90deg,transparent 0 70px,#2a1911 70px 73px),
+    linear-gradient(135deg,#8e3d22,#6a2c18 50%,#7c3520);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+.hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 35px,#2a1911 35px 38px);-webkit-mask:repeating-linear-gradient(0deg,transparent 0 33px,#000 33px 66px);mask:repeating-linear-gradient(0deg,transparent 0 33px,#000 33px 66px);opacity:.9;pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;background:var(--concrete);opacity:.7;mix-blend-mode:overlay;pointer-events:none}
+.bulb{position:absolute;right:20%;top:0;width:2px;height:74px;background:#0d0c0b;z-index:1}
+.bulb i{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:30px;height:42px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 40%,#fff3d4,#f6be62 45%,rgba(243,179,91,.35) 70%,transparent 72%);filter:drop-shadow(0 0 18px rgba(255,190,90,.9)) drop-shadow(0 0 60px rgba(255,170,70,.55));animation:flick 6s infinite}
+.bulb i::before{content:"";position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:12px;height:10px;background:#3a332b;border-radius:2px}
+@keyframes flick{0%,100%{opacity:1}47%{opacity:1}48%{opacity:.82}49%{opacity:1}72%{opacity:.93}73%{opacity:1}}
+.hero > *:not(.bulb){position:relative;z-index:2}
+.hero h1{font-size:54px;max-width:12ch;text-shadow:0 2px 20px rgba(0,0,0,.5)}
+.hero .lead{color:#e3d4c0;max-width:46ch}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+/* ---------- buttons, chips ---------- */
+.btn{display:inline-flex;align-items:center;gap:9px;height:46px;padding:0 22px;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--edison);color:var(--edison-ink);box-shadow:0 0 0 1px rgba(0,0,0,.2),0 8px 30px -8px rgba(243,179,91,.6)}
+.btn.primary:hover{background:#ffc672}
+.btn.ghost{border:1px solid rgba(239,230,216,.35);color:var(--bone);background:rgba(20,19,18,.35);backdrop-filter:blur(6px)}
+.btn.ghost:hover{border-color:var(--bone)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 15px;border:1px dashed var(--rivet);font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ash);background:var(--iron)}
+.chip:hover{color:var(--bone);border-color:var(--smoke)}
+.chip[aria-pressed="true"]{border-style:solid;border-color:var(--edison);color:var(--edison);background:var(--glow)}
+
+.q{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.06em;padding:2px 7px;white-space:nowrap;border:1px solid var(--rivet);color:var(--ash);text-transform:uppercase}
+.q.ll{border-color:rgba(134,187,166,.45);color:var(--patina);background:var(--patina-bg)}
+
+/* ---------- search box ---------- */
+.search{display:flex;align-items:center;gap:10px;background:var(--iron);border:1px solid var(--rivet);padding:0 16px;height:52px;max-width:640px;width:100%}
+.search:focus-within{border-color:var(--edison)}
+.search svg{width:19px;height:19px;color:var(--smoke);flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;color:var(--bone);font:inherit;font-size:16px;outline:none}
+.search input::placeholder{color:var(--smoke)}
+.seg{display:flex;border:1px solid var(--rivet);width:max-content;max-width:100%;overflow-x:auto}
+.seg button{padding:9px 14px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ash);white-space:nowrap}
+.seg button+button{border-left:1px solid var(--rivet)}
+.seg button[aria-pressed="true"]{background:var(--bone);color:var(--steel)}
+
+/* ---------- album grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:22px 18px}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:176px;gap:18px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--rivet) transparent}
+.card{display:flex;flex-direction:column;gap:10px;text-align:left;min-width:0}
+.frame{aspect-ratio:1;width:100%;max-width:100%;background:var(--iron2);position:relative;overflow:hidden;box-shadow:0 0 0 1px var(--rivet),0 14px 30px -14px rgba(0,0,0,.8)}
+.frame img{width:100%;height:100%;object-fit:cover;filter:saturate(.85) contrast(1.05);transition:transform .4s ease,filter .4s}
+.card:hover .frame img{transform:scale(1.04);filter:none}
+.frame .pp{position:absolute;right:10px;bottom:10px;width:42px;height:42px;border-radius:50%;background:var(--edison);color:var(--edison-ink);display:grid;place-items:center;opacity:0;transform:translateY(6px);transition:.2s;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.frame .pp svg{width:18px;height:18px}
+.card:hover .pp,.card:focus-visible .pp{opacity:1;transform:none}
+.card .t{font-weight:600;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .a{font-size:13px;color:var(--ash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .meta{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- track list ---------- */
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:30px 48px minmax(0,1fr) auto 54px 40px;align-items:center;gap:14px;padding:8px 10px;cursor:pointer;border-bottom:1px solid rgba(59,54,50,.55)}
+.row:hover{background:var(--iron)}
+.row.on{background:linear-gradient(90deg,var(--glow),transparent 70%)}
+.row .n{font-family:var(--mono);font-size:12px;color:var(--smoke);text-align:right;font-variant-numeric:tabular-nums}
+.row.on .n{color:var(--edison)}
+.th{width:48px;height:48px;background:var(--iron2);overflow:hidden;flex:none;box-shadow:0 0 0 1px var(--rivet)}
+.th img{width:100%;height:100%;object-fit:cover}
+.ti{min-width:0}
+.ti b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.on .ti b{color:var(--edison)}
+.ti span{display:block;font-size:13px;color:var(--ash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .d{font-family:var(--mono);font-size:12px;color:var(--ash);text-align:right;font-variant-numeric:tabular-nums}
+.ic{width:40px;height:40px;display:grid;place-items:center;color:var(--smoke)}
+.ic:hover{color:var(--bone)}
+.ic[aria-pressed="true"]{color:var(--brick)}
+.ic svg{width:19px;height:19px}
+
+/* ---------- album view ---------- */
+.back{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash)}
+.back:hover{color:var(--edison)}
+.album-hero{display:flex;gap:30px;align-items:flex-end;flex-wrap:wrap}
+.album-hero .frame{width:220px;flex:none}
+.album-hero .info{display:flex;flex-direction:column;gap:12px;min-width:0;flex:1 1 300px}
+.album-hero h1{font-size:36px}
+.album-hero .by{color:var(--ash)}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+.status{padding:30px 10px;color:var(--ash);text-align:center;font-size:14px}
+.status.err{color:#e38a67}
+.skel{background:linear-gradient(90deg,var(--iron2),var(--iron3),var(--iron2));background-size:200% 100%;animation:sk 1.3s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* ---------- desktop player bar ---------- */
+.bar{grid-column:2;grid-row:2;background:var(--iron);border-top:1px solid var(--rivet);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:center;padding:12px 22px calc(12px + var(--sab));position:relative}
+.bar::before{content:"";position:absolute;left:0;right:0;top:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--edison) var(--prog,0%),transparent var(--prog,0%))}
+.now{display:flex;gap:13px;align-items:center;min-width:0;text-align:left}
+.now .th{width:58px;height:58px}
+.qline{display:flex;gap:8px;align-items:center;margin-top:3px}
+.ctr{display:flex;flex-direction:column;gap:6px;align-items:center;min-width:0}
+.btns{display:flex;align-items:center;gap:12px}
+.ib{width:40px;height:40px;display:grid;place-items:center;color:var(--ash);position:relative}
+.ib:hover{color:var(--bone)}
+.ib svg{width:21px;height:21px}
+.ib[aria-pressed="true"]{color:var(--edison)}
+.ib[data-mode="one"]::after{content:"1";position:absolute;right:5px;top:5px;font:600 9px var(--mono);color:var(--edison)}
+.play{width:48px;height:48px;border-radius:50%;background:var(--bone);color:var(--steel);display:grid;place-items:center;flex:none}
+.play:hover{background:#fff}
+.play svg{width:20px;height:20px}
+.seek{display:flex;align-items:center;gap:10px;width:100%}
+.seek span{font-family:var(--mono);font-size:11px;color:var(--smoke);font-variant-numeric:tabular-nums;min-width:40px}
+.seek span:last-child{text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:20px;background:none;cursor:pointer;--p:0%}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(var(--edison),var(--edison)) 0/var(--p) 100% no-repeat,var(--rivet)}
+input[type=range]::-moz-range-track{height:3px;background:var(--rivet)}
+input[type=range]::-moz-range-progress{height:3px;background:var(--edison)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--bone);margin-top:-5px;border:0;box-shadow:0 0 0 4px rgba(243,179,91,.18)}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--bone);border:0}
+.right{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.vol{max-width:120px}
+.bars{display:inline-flex;gap:2px;align-items:flex-end;height:12px}
+.bars i{width:3px;background:var(--edison);height:30%}
+.playing .bars i{animation:eq .8s ease-in-out infinite alternate}
+.bars i:nth-child(2){animation-delay:-.25s!important}.bars i:nth-child(3){animation-delay:-.55s!important}
+@keyframes eq{0%{height:25%}100%{height:100%}}
+.sleep-on{color:var(--edison)!important}
+
+/* ---------- full-screen player ---------- */
+.full{position:fixed;inset:0;z-index:20;background:var(--steel);display:flex;flex-direction:column;padding:calc(14px + var(--sat)) 22px calc(22px + var(--sab));overflow:hidden;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.full-bg{position:absolute;inset:-40px;background-size:cover;background-position:center;filter:blur(50px) saturate(1.2) brightness(.45);opacity:.9;z-index:0}
+.full::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,19,18,.2),rgba(20,19,18,.92) 75%),var(--concrete);z-index:0}
+.full > *:not(.full-bg){position:relative;z-index:1}
+.full-top{display:flex;align-items:center;justify-content:space-between}
+.full-top .tag{color:var(--ash)}
+.full-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px;width:100%;max-width:460px;margin:0 auto;min-height:0}
+.full .frame{width:min(100%,46vh);margin:0 auto;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 60px -20px rgba(0,0,0,.9)}
+.full-meta{display:flex;align-items:flex-start;gap:12px}
+.full-meta .ti{flex:1}
+.full-meta b{font-family:var(--display);text-transform:uppercase;font-size:26px;letter-spacing:.03em;font-weight:600;white-space:normal;line-height:1.1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.full-meta span{font-size:15px;margin-top:6px}
+.full .btns{justify-content:space-between;width:100%}
+.full .play{width:68px;height:68px;background:var(--edison);color:var(--edison-ink);box-shadow:0 10px 40px -10px rgba(243,179,91,.8)}
+.full .play svg{width:28px;height:28px}
+.full .ib svg{width:24px;height:24px}
+.full-foot{display:flex;justify-content:space-between;align-items:center}
+
+/* ---------- sheet (queue / sleep) ---------- */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30}
+.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);max-height:72vh;overflow:auto;background:var(--iron);border:1px solid var(--rivet);border-bottom:0;z-index:31;padding:18px 18px calc(18px + var(--sab));display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
+.sheet .row{grid-template-columns:48px minmax(0,1fr) auto}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.opt{padding:14px;border:1px solid var(--rivet);font-family:var(--display);letter-spacing:.08em;text-transform:uppercase;font-size:15px;text-align:left}
+.opt:hover{border-color:var(--edison);color:var(--edison)}
+
+.toast{position:fixed;left:50%;bottom:calc(120px + var(--sab));transform:translateX(-50%);background:var(--bone);color:var(--steel);padding:11px 18px;font-weight:600;font-size:14px;max-width:calc(100vw - 32px);z-index:40;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+
+/* ---------- mobile ---------- */
+.tabs{display:none}
+.mini{display:none}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto}
+  .side{grid-row:1;flex-direction:row;align-items:center;justify-content:space-between;padding:12px 16px;border-right:0;border-bottom:1px solid var(--rivet);gap:10px}
+  .side::after,.side .nav,.side-plate{display:none}
+  .logo-mark{width:30px;height:30px}
+  .logo-mark::before,.logo-mark::after{box-shadow:20px 0 var(--brick-deep),0 20px var(--brick-deep),20px 20px var(--brick-deep)}
+  .logo-word{font-size:22px}
+  .main{grid-column:1;grid-row:2}
+  .page{padding:20px 16px 28px;gap:28px}
+  h1{font-size:32px}
+  .hero{min-height:230px;padding:24px 20px;margin:-20px -16px 0}
+  .hero h1{font-size:38px}
+  .bulb{right:14%}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+  .rail{grid-auto-columns:148px;gap:12px;margin-right:-16px;padding-right:16px}
+  .frame .pp{opacity:1;transform:none;width:36px;height:36px}
+  .row{grid-template-columns:48px minmax(0,1fr) auto 36px;gap:12px;padding:8px 2px}
+  .row .n,.row .d{display:none}
+  .row .ic{width:36px}
+  .row .q{display:none}
+  .bar{display:none}
+  .mini{grid-row:3;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:4px;margin:0 8px;padding:7px 6px 7px 7px;background:var(--iron2);border:1px solid var(--rivet);position:relative;overflow:hidden}
+  .mini[hidden]{display:none}
+  .mini::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:var(--prog,0%);background:var(--edison)}
+  .mini .th{width:44px;height:44px}
+  .mini .play{width:40px;height:40px;background:none;color:var(--bone)}
+  .tabs{grid-row:4;display:grid;grid-template-columns:repeat(4,1fr);background:var(--steel);border-top:1px solid var(--rivet);padding:6px 4px calc(6px + var(--sab));margin-top:8px}
+  .tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--smoke);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+  .tabs button svg{width:22px;height:22px}
+  .tabs button[aria-current="page"]{color:var(--edison)}
+  .album-hero .frame{width:100%;max-width:280px}
+  .album-hero h1{font-size:28px}
+  .toast{bottom:calc(150px + var(--sab))}
+}
+@media (min-width:821px){ .full .frame{width:min(100%,50vh)} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M6 4h4v16H6zM14 4h4v16h-4z"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path fill="currentColor" d="M6 5h2v14H6zM20 5v14L9 12z"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path fill="currentColor" d="M16 5h2v14h-2zM4 5v14l11-7z"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></g></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+  <symbol id="i-heart-f" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+  <symbol id="i-queue" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 6h13M3 12h13M3 18h8M19 14v7M16 18l3 3 3-3"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9a4 4 0 0 1 0 6"/></g></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 12h1M7 8v8M11 4v16M15 8v8M19 10v4M22 12h0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
+</svg>
+
+<div class="app" id="app">
+  <aside class="side">
+    <div class="logo">
+      <div class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f3e2c9" stroke-width="2.4" stroke-linecap="square"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4"/></svg></div>
+      <div><span class="logo-word">Тембр</span><span class="logo-sub">стриминг · lossless</span></div>
+    </div>
+    <nav class="nav" aria-label="Разделы">
+      <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg><span class="nav-label">Главная</span></button>
+      <button data-view="lossless"><svg><use href="#i-wave"/></svg><span class="nav-label">Без потерь</span></button>
+      <button data-view="search"><svg><use href="#i-search"/></svg><span class="nav-label">Поиск</span></button>
+      <button data-view="fav"><svg><use href="#i-heart"/></svg><span class="nav-label">Любимое</span></button>
+    </nav>
+    <div class="side-plate"><b>Источники</b>Audius: треки независимых артистов, MP3 320. Internet Archive: концерты в FLAC без потерь.</div>
+  </aside>
+
+  <main class="main" id="main"><div class="page" id="page"></div></main>
+
+  <!-- desktop bar -->
+  <footer class="bar" id="bar">
+    <button class="now" data-open-full>
+      <div class="th" data-np="cover"></div>
+      <div class="ti"><b data-np="title">Ничего не играет</b><span data-np="artist">Выберите трек</span>
+        <div class="qline"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="q" data-np="q" hidden></span></div></div>
+    </button>
+    <div class="ctr">
+      <div class="btns">
+        <button class="ib" data-act="shuffle" aria-pressed="false" title="Перемешать"><svg><use href="#i-shuffle"/></svg></button>
+        <button class="ib" data-act="prev" title="Предыдущий"><svg><use href="#i-prev"/></svg></button>
+        <button class="play" data-act="toggle" title="Играть / пауза"><svg><use href="#i-play" data-np="playicon"/></svg></button>
+        <button class="ib" data-act="next" title="Следующий"><svg><use href="#i-next"/></svg></button>
+        <button class="ib" data-act="repeat" aria-pressed="false" title="Повтор"><svg><use href="#i-repeat"/></svg></button>
+      </div>
+      <div class="seek"><span data-np="cur">0:00</span><input type="range" id="seekBar" data-seek min="0" max="1000" value="0" aria-label="Позиция"><span data-np="dur">0:00</span></div>
+    </div>
+    <div class="right">
+      <button class="ib" data-act="sleep" title="Таймер сна"><svg><use href="#i-moon"/></svg></button>
+      <button class="ib" data-act="queue" title="Очередь"><svg><use href="#i-queue"/></svg></button>
+      <button class="ib" data-act="mute" title="Звук"><svg><use href="#i-vol"/></svg></button>
+      <input type="range" class="vol" id="vol" min="0" max="100" value="90" aria-label="Громкость">
+    </div>
+  </footer>
+
+  <!-- mobile mini player -->
+  <div class="mini" id="mini" hidden>
+    <button class="now" data-open-full>
+      <div class="th" data-np="cover"></div>
+      <div class="ti"><b data-np="title"></b><span data-np="artist"></span></div>
+    </button>
+    <button class="play" data-act="toggle" title="Играть / пауза"><svg><use href="#i-play" data-np="playicon"/></svg></button>
+    <button class="ib" data-act="next" title="Следующий"><svg><use href="#i-next"/></svg></button>
+  </div>
+
+  <nav class="tabs" aria-label="Разделы">
+    <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Главная</button>
+    <button data-view="lossless"><svg><use href="#i-wave"/></svg>Lossless</button>
+    <button data-view="search"><svg><use href="#i-search"/></svg>Поиск</button>
+    <button data-view="fav"><svg><use href="#i-heart"/></svg>Любимое</button>
+  </nav>
+</div>
+
+<!-- full screen player -->
+<section class="full" id="full" hidden aria-label="Сейчас играет">
+  <div class="full-bg" id="fullBg"></div>
+  <div class="full-top">
+    <button class="ib" data-close-full title="Свернуть"><svg><use href="#i-down"/></svg></button>
+    <span class="tag" data-np="source">Сейчас играет</span>
+    <button class="ib" data-act="queue" title="Очередь"><svg><use href="#i-queue"/></svg></button>
+  </div>
+  <div class="full-body">
+    <div class="frame" data-np="coverbig"></div>
+    <div class="full-meta">
+      <div class="ti"><b data-np="title"></b><span data-np="artist"></span></div>
+      <button class="ic" data-act="fav" aria-pressed="false" title="Любимое"><svg><use href="#i-heart" data-np="favicon"/></svg></button>
+    </div>
+    <div>
+      <div class="seek"><span data-np="cur">0:00</span><input type="range" id="seekFull" data-seek min="0" max="1000" value="0" aria-label="Позиция"><span data-np="dur">0:00</span></div>
+    </div>
+    <div class="btns">
+      <button class="ib" data-act="shuffle" aria-pressed="false" title="Перемешать"><svg><use href="#i-shuffle"/></svg></button>
+      <button class="ib" data-act="prev" title="Предыдущий"><svg><use href="#i-prev"/></svg></button>
+      <button class="play" data-act="toggle" title="Играть / пауза"><svg><use href="#i-play" data-np="playicon"/></svg></button>
+      <button class="ib" data-act="next" title="Следующий"><svg><use href="#i-next"/></svg></button>
+      <button class="ib" data-act="repeat" aria-pressed="false" title="Повтор"><svg><use href="#i-repeat"/></svg></button>
+    </div>
+    <div class="full-foot">
+      <span class="q" data-np="q" hidden></span>
+      <button class="ib" data-act="sleep" title="Таймер сна"><svg><use href="#i-moon"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" hidden></div>
+<div class="toast" id="toast" hidden></div>
+<audio id="audio" preload="auto"></audio>
+
+<script>
+(() => {
+  const APP = "tembr_player";
+  const AUDIUS = "https://api.audius.co/v1";
+  const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+  const page = $("#page"), audio = $("#audio");
+  const native = window.TembrNative || null;   // мост в Android-приложении
+
+  /* ---------- helpers ---------- */
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmt = s => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = String(s%60).padStart(2,"0"); return h ? `${h}:${String(m).padStart(2,"0")}:${x}` : `${m}:${x}`; };
+  const store = {
+    get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+  let toastT;
+  function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3000); }
+  async function getJSON(url){ const r = await fetch(url); if (!r.ok) throw new Error("сервер ответил " + r.status); return r.json(); }
+  function hueCover(seed, label){
+    let h = 0; for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) % 360;
+    return `<div style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(135deg,hsl(${h} 35% 34%),hsl(${(h+40)%360} 40% 18%));color:#efe6d8;font:600 30px var(--display)">${esc((label||"?").trim().slice(0,1).toUpperCase())}</div>`;
+  }
+  const img = (src, seed, label) => src ? `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.remove()">` : hueCover(seed, label);
+  const qBadge = t => `<span class="q${t.lossless ? " ll" : ""}">${esc(t.quality)}</span>`;
+  const icon = (id) => `<svg><use href="#${id}"/></svg>`;
+
+  /* ---------- sources ---------- */
+  const Audius = {
+    map(t){
+      const a = t.artwork || {}, st = t.stream || {}, srcs = [];
+      if (st.url){
+        srcs.push(st.url);
+        try { const u = new URL(st.url); (st.mirrors || []).forEach(m => { try { srcs.push(new URL(u.pathname + u.search, m).href); } catch {} }); } catch {}
+      }
+      srcs.push(`${AUDIUS}/tracks/${encodeURIComponent(t.id)}/stream?app_name=${APP}`);
+      return { id: "au:" + t.id, source: "Audius", title: t.title, artist: t.user?.name || "—",
+        cover: a["480x480"] || a["1000x1000"] || a["150x150"] || "", duration: t.duration || 0,
+        src: srcs[0], srcs, quality: "MP3 320", lossless: false, fetchedAt: Date.now() };
+    },
+    ok: t => t && t.is_streamable !== false && !t.stream_conditions && !(t.access && t.access.stream === false),
+    async trending(genre){
+      const p = new URLSearchParams({ app_name: APP, time: "week", limit: "40" });
+      if (genre) p.set("genre", genre);
+      const j = await getJSON(`${AUDIUS}/tracks/trending?${p}`);
+      return (j.data || []).filter(Audius.ok).map(Audius.map);
+    },
+    async search(q){
+      const j = await getJSON(`${AUDIUS}/tracks/search?${new URLSearchParams({ app_name: APP, query: q, limit: "30" })}`);
+      return (j.data || []).filter(Audius.ok).map(Audius.map);
+    },
+    async fresh(t){          // подписанные ссылки со временем истекают
+      const id = t.id.slice(3);
+      const j = await getJSON(`${AUDIUS}/tracks/${encodeURIComponent(id)}?app_name=${APP}`);
+      return j.data ? Audius.map(j.data) : t;
+    }
+  };
+
+  const Archive = {
+    cover: id => `https://archive.org/services/img/${encodeURIComponent(id)}`,
+    async albums(q){
+      const query = q ? `(${q}) AND collection:etree AND format:Flac` : "collection:etree AND format:Flac";
+      const p = new URLSearchParams({ q: query, rows: "36", output: "json" });
+      ["identifier","title","creator","date"].forEach(f => p.append("fl[]", f));
+      p.append("sort[]", "downloads desc");
+      const j = await getJSON(`https://archive.org/advancedsearch.php?${p}`);
+      return (j.response?.docs || []).map(d => ({ id: d.identifier, title: d.title || d.identifier,
+        artist: Array.isArray(d.creator) ? d.creator[0] : (d.creator || "Разные исполнители"), date: String(d.date || "").slice(0,10) }));
+    },
+    async album(id){
+      const j = await getJSON(`https://archive.org/metadata/${encodeURIComponent(id)}`);
+      const md = j.metadata || {}, files = j.files || [];
+      const has24 = files.some(f => /24bit flac/i.test(f.format || ""));
+      const pick = files.filter(f => has24 ? /24bit flac/i.test(f.format || "") : f.format === "Flac");
+      const no = f => parseInt(String(f.track || "").split("/")[0], 10);
+      pick.sort((a,b) => { const x = no(a), y = no(b); return (isNaN(x)||isNaN(y) ? 0 : x - y) || a.name.localeCompare(b.name, undefined, {numeric:true}); });
+      const artist = Array.isArray(md.creator) ? md.creator[0] : (md.creator || "Разные исполнители");
+      const cover = Archive.cover(id), q = has24 ? "FLAC 24 бит" : "FLAC 16 бит";
+      const len = v => !v ? 0 : String(v).includes(":") ? String(v).split(":").reduce((s,x) => s*60 + parseFloat(x), 0) : parseFloat(v) || 0;
+      const tracks = pick.map(f => {
+        const src = `https://archive.org/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`;
+        return { id: `ia:${id}/${f.name}`, source: "Internet Archive", title: f.title || f.name.replace(/\.[^.]+$/, ""), artist, cover,
+          duration: len(f.length), src, srcs: [src], quality: q, lossless: true, album: md.title };
+      });
+      return { id, title: md.title || id, artist, cover, tracks, date: md.date || "", venue: md.venue || "", quality: q };
+    }
+  };
+
+  /* ---------- state ---------- */
+  const S = {
+    view: "home", prevView: "home", genre: "", searchQ: "", searchSrc: "all", llq: "",
+    favs: store.get("tembr.favs", []), history: store.get("tembr.history", []),
+    queue: [], order: [], pos: -1, qi: -1, shuffle: false, repeat: "off",
+    lists: {}, srcIdx: 0, fails: 0, sleepAt: 0, sleepEnd: false
+  };
+  const cur = () => S.queue[S.qi];
+  const isFav = id => S.favs.some(t => t.id === id);
+  function toggleFav(t){
+    if (!t) return;
+    if (isFav(t.id)) S.favs = S.favs.filter(x => x.id !== t.id); else S.favs.unshift(t);
+    store.set("tembr.favs", S.favs);
+    $$(`[data-fav="${CSS.escape(t.id)}"]`).forEach(b => { const on = isFav(t.id); b.setAttribute("aria-pressed", on); b.innerHTML = icon(on ? "i-heart-f" : "i-heart"); });
+    syncFavBtn();
+    toast(isFav(t.id) ? "Добавлено в «Любимое»" : "Убрано из «Любимого»");
+    if (S.view === "fav") render();
+  }
+  function pushHistory(t){
+    S.history = [t, ...S.history.filter(x => x.id !== t.id)].slice(0, 24);
+    store.set("tembr.history", S.history);
+  }
+
+  /* ---------- views ---------- */
+  function trackRows(tracks, listId, numbered = true){
+    S.lists[listId] = tracks;
+    const c = cur()?.id;
+    return `<div class="list">${tracks.map((t, i) => `
+      <div class="row${t.id === c ? " on" : ""}" data-list="${listId}" data-i="${i}" data-id="${esc(t.id)}" role="button" tabindex="0">
+        <span class="n">${numbered ? String(i + 1).padStart(2, "0") : ""}</span>
+        <div class="th">${img(t.cover, t.id, t.title)}</div>
+        <div class="ti"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div>
+        ${qBadge(t)}
+        <span class="d">${t.duration ? fmt(t.duration) : ""}</span>
+        <button class="ic" data-fav="${esc(t.id)}" aria-pressed="${isFav(t.id)}" title="Любимое">${icon(isFav(t.id) ? "i-heart-f" : "i-heart")}</button>
+      </div>`).join("")}</div>`;
+  }
+  const skelRows = n => `<div class="list">${Array.from({length:n}, () => `<div class="row"><span class="n"></span><div class="th skel"></div><div class="ti"><b class="skel" style="height:13px;width:55%"></b><span class="skel" style="height:10px;width:30%;margin-top:7px"></span></div><span></span><span></span><span></span></div>`).join("")}</div>`;
+  const skelCards = (n, cls = "grid") => `<div class="${cls}">${Array.from({length:n}, () => `<div class="card"><div class="frame skel"></div></div>`).join("")}</div>`;
+  const albumCards = (albums, cls = "grid") => `<div class="${cls}">${albums.map(a => `
+      <button class="card" data-album="${esc(a.id)}">
+        <div class="frame">${img(Archive.cover(a.id), a.id, a.artist)}<span class="pp">${icon("i-play")}</span></div>
+        <div class="t">${esc(a.title)}</div>
+        <div class="a">${esc(a.artist)}</div>
+        <div class="meta"><span class="q ll">FLAC</span>${a.date ? `<span class="q">${esc(a.date.slice(0,4))}</span>` : ""}</div>
+      </button>`).join("")}</div>`;
+  const errBox = e => `<div class="status err">Не удалось загрузить (${esc(e.message)}). Проверьте интернет и откройте раздел ещё раз.</div>`;
+
+  const GENRES = [["","Все жанры"],["Electronic","Электроника"],["Hip-Hop/Rap","Хип-хоп"],["Pop","Поп"],["Rock","Рок"],["R&B/Soul","R&B"],["Lo-Fi","Lo-Fi"],["House","Хаус"],["Techno","Техно"],["Jazz","Джаз"],["Ambient","Эмбиент"],["Classical","Классика"]];
+
+  let tok = 0;
+  function setNav(){
+    const v = S.view.split(":")[0];
+    $$("[data-view]").forEach(b => b.dataset.view === v ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
+  }
+  async function render(){
+    const my = ++tok; setNav(); $("#main").scrollTop = 0;
+
+    if (S.view === "home"){
+      page.innerHTML = `
+        <section class="hero">
+          <div class="bulb" aria-hidden="true"><i></i></div>
+          <span class="tag">Чарт недели · Audius</span>
+          <h1>Звук, который не прячут за подпиской</h1>
+          <p class="lead">Новые треки независимых артистов и концерты в FLAC. Всё играет из сети, бесплатно и легально.</p>
+          <div class="hero-actions">
+            <button class="btn primary" data-playall="trend">${icon("i-play")}Включить чарт</button>
+            <button class="btn ghost" data-go="lossless">Слушать без потерь</button>
+          </div>
+        </section>
+        ${S.history.length ? `<section class="sec"><div class="sec-head"><h2>Недавно играло</h2></div>${trackRows(S.history.slice(0,5), "hist", false)}</section>` : ""}
+        <section class="sec">
+          <div class="sec-head"><h2>В чарте</h2></div>
+          <div class="chips">${GENRES.map(([g,l]) => `<button class="chip" data-genre="${esc(g)}" aria-pressed="${S.genre === g}">${l}</button>`).join("")}</div>
+          <div id="trend">${skelRows(8)}</div>
+        </section>
+        <section class="sec">
+          <div class="sec-head"><h2>Концерты без потерь</h2><button class="link" data-go="lossless">Все →</button></div>
+          <div id="llTeaser">${skelCards(6, "rail")}</div>
+        </section>`;
+      Audius.trending(S.genre).then(ts => { if (my === tok) $("#trend").innerHTML = ts.length ? trackRows(ts, "trend") : `<div class="status">В этом жанре пока пусто.</div>`; })
+        .catch(e => { if (my === tok) $("#trend").innerHTML = errBox(e); });
+      Archive.albums("").then(as => { if (my === tok) $("#llTeaser").innerHTML = albumCards(as.slice(0, 12), "rail"); })
+        .catch(e => { if (my === tok) $("#llTeaser").innerHTML = errBox(e); });
+    }
+
+    else if (S.view === "lossless"){
+      page.innerHTML = `
+        <div class="sec"><span class="tag">Internet Archive · Live Music Archive</span><h1>Без потерь</h1>
+          <p class="lead">Концертные записи в FLAC, которые артисты разрешили свободно распространять. Звук идёт в исходном качестве, без сжатия. Если есть версия 24 бит, плеер выберет её.</p></div>
+        <label class="search">${icon("i-search")}<input id="llq" type="search" placeholder="Исполнитель, например Grateful Dead" value="${esc(S.llq)}" autocomplete="off"></label>
+        <section id="llGrid">${skelCards(12)}</section>`;
+      const run = () => {
+        const q = S.llq; $("#llGrid").innerHTML = skelCards(12);
+        Archive.albums(q).then(as => { if (my === tok) $("#llGrid").innerHTML = as.length ? albumCards(as) : `<div class="status">Ничего не нашлось по запросу «${esc(q)}».</div>`; })
+          .catch(e => { if (my === tok) $("#llGrid").innerHTML = errBox(e); });
+      };
+      let t; $("#llq").addEventListener("input", e => { S.llq = e.target.value.trim(); clearTimeout(t); t = setTimeout(run, 450); });
+      run();
+    }
+
+    else if (S.view.startsWith("album:")){
+      const id = S.view.slice(6);
+      page.innerHTML = `<button class="back" data-go="${esc(S.prevView)}">← Назад</button><div id="alb">${skelRows(10)}</div>`;
+      try {
+        const a = await Archive.album(id);
+        if (my !== tok) return;
+        $("#alb").innerHTML = `
+          <div class="sec" style="gap:28px">
+            <div class="album-hero">
+              <div class="frame">${img(a.cover, a.id, a.artist)}</div>
+              <div class="info"><span class="tag">Концерт · ${a.tracks.length} треков</span><h1>${esc(a.title)}</h1>
+                <span class="by">${esc(a.artist)}${a.venue ? " · " + esc(a.venue) : ""}${a.date ? " · " + esc(String(a.date).slice(0,10)) : ""}</span>
+                <div class="actions"><button class="btn primary" data-playall="alb">${icon("i-play")}Слушать</button><span class="q ll">${esc(a.quality)}</span>
+                  <a class="link" href="https://archive.org/details/${encodeURIComponent(a.id)}" target="_blank" rel="noopener">archive.org ↗</a></div>
+              </div>
+            </div>
+            ${a.tracks.length ? trackRows(a.tracks, "alb") : `<div class="status">В этой записи нет FLAC-файлов.</div>`}
+          </div>`;
+      } catch(e){ if (my === tok) $("#alb").innerHTML = errBox(e); }
+    }
+
+    else if (S.view === "search"){
+      page.innerHTML = `
+        <div class="sec"><span class="tag">Поиск</span><h1>Найти музыку</h1></div>
+        <label class="search">${icon("i-search")}<input id="sq" type="search" placeholder="Трек, артист или жанр" value="${esc(S.searchQ)}" autocomplete="off"></label>
+        <div class="seg" role="group" aria-label="Где искать">
+          <button data-src="all" aria-pressed="${S.searchSrc==="all"}">Везде</button>
+          <button data-src="au" aria-pressed="${S.searchSrc==="au"}">Треки</button>
+          <button data-src="ia" aria-pressed="${S.searchSrc==="ia"}">FLAC-концерты</button>
+        </div>
+        <div id="sres" class="sec"></div>`;
+      const inp = $("#sq"); if (matchMedia("(min-width:821px)").matches) inp.focus();
+      let t; inp.addEventListener("input", e => { S.searchQ = e.target.value.trim(); clearTimeout(t); t = setTimeout(runSearch, 400); });
+      runSearch();
+    }
+
+    else if (S.view === "fav"){
+      page.innerHTML = `
+        <div class="sec"><span class="tag">Ваша полка</span><h1>Любимое</h1>
+          <p class="lead">Треки, отмеченные сердцем. Хранятся на этом устройстве.</p>
+          ${S.favs.length ? `<div class="actions"><button class="btn primary" data-playall="fav">${icon("i-play")}Слушать всё</button></div>` : ""}</div>
+        <section>${S.favs.length ? trackRows(S.favs, "fav") : `<div class="status">Пока пусто. Нажмите ♡ рядом с треком, и он появится здесь.</div>`}</section>`;
+    }
+  }
+
+  function runSearch(){
+    const my = tok, box = $("#sres"); if (!box) return;
+    const q = S.searchQ;
+    if (!q){ box.innerHTML = `<div class="status">Введите запрос. Ищу сразу в Audius и в архиве FLAC-концертов.</div>`; return; }
+    const au = S.searchSrc !== "ia", ia = S.searchSrc !== "au";
+    box.innerHTML = (au ? `<section class="sec" id="rAu"><div class="sec-head"><h2>Треки</h2></div>${skelRows(6)}</section>` : "") +
+                    (ia ? `<section class="sec" id="rIa"><div class="sec-head"><h2>FLAC-концерты</h2></div>${skelCards(4)}</section>` : "");
+    const head = h => `<div class="sec-head"><h2>${h}</h2></div>`;
+    if (au) Audius.search(q).then(ts => { if (my !== tok || S.searchQ !== q) return; $("#rAu").innerHTML = head("Треки") + (ts.length ? trackRows(ts, "sAu") : `<div class="status">Треков не нашлось.</div>`); })
+      .catch(e => { const b = $("#rAu"); if (b) b.innerHTML = head("Треки") + errBox(e); });
+    if (ia) Archive.albums(q).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rIa").innerHTML = head("FLAC-концерты") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">Концертов не нашлось.</div>`); })
+      .catch(e => { const b = $("#rIa"); if (b) b.innerHTML = head("FLAC-концерты") + errBox(e); });
+  }
+
+  /* ---------- playback ---------- */
+  function shuffled(start, n){
+    const rest = [...Array(n).keys()].filter(i => i !== start);
+    for (let i = rest.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    return [start, ...rest];
+  }
+  function setQueue(tracks, start){
+    if (!tracks || !tracks.length) return;
+    S.queue = tracks.slice(); S.fails = 0;
+    S.order = S.shuffle ? shuffled(start, tracks.length) : [...Array(tracks.length).keys()];
+    loadAt(S.shuffle ? 0 : start, true);
+  }
+  async function loadAt(pos, autoplay){
+    if (pos < 0 || pos >= S.order.length) return;
+    S.pos = pos; S.qi = S.order[pos];
+    let t = cur();
+    if (t.source === "Audius" && Date.now() - (t.fetchedAt || 0) > 20 * 60 * 1000){
+      try { const f = await Audius.fresh(t); Object.assign(t, f); } catch {}
+    }
+    S.srcIdx = 0;
+    audio.src = t.srcs ? t.srcs[0] : t.src;
+    audio.load();
+    if (autoplay) tryPlay();
+    pushHistory(t);
+    updateNow();
+  }
+  function tryPlay(){
+    audio.play().catch(err => { if (err.name === "NotAllowedError") toast("Нажмите ▶, чтобы включить звук."); });
+  }
+  function next(auto){
+    if (!S.order.length) return;
+    if (S.pos + 1 < S.order.length) loadAt(S.pos + 1, true);
+    else if (S.repeat === "all" || !auto) loadAt(0, true);
+    else audio.pause();
+  }
+  function prev(){ if (audio.currentTime > 4) { audio.currentTime = 0; return; } if (S.pos > 0) loadAt(S.pos - 1, true); else audio.currentTime = 0; }
+  function toggle(){
+    if (!audio.src){ const first = S.lists.trend || Object.values(S.lists).find(l => l && l.length); if (first) setQueue(first, 0); return; }
+    audio.paused ? tryPlay() : audio.pause();
+  }
+
+  function np(key, fn){ $$(`[data-np="${key}"]`).forEach(fn); }
+  function syncFavBtn(){
+    const t = cur(), on = !!t && isFav(t.id);
+    $$('[data-act="fav"]').forEach(b => b.setAttribute("aria-pressed", on));
+    np("favicon", u => u.setAttribute("href", on ? "#i-heart-f" : "#i-heart"));
+  }
+  function updateNow(){
+    const t = cur(); if (!t) return;
+    $("#mini").hidden = false;
+    np("title", e => e.textContent = t.title);
+    np("artist", e => e.textContent = t.artist);
+    np("source", e => e.textContent = t.source + (t.album ? " · " + t.album : ""));
+    np("cover", e => e.innerHTML = img(t.cover, t.id, t.title));
+    np("coverbig", e => e.innerHTML = img(t.cover, t.id, t.title));
+    np("q", e => { e.hidden = false; e.textContent = t.quality; e.className = "q" + (t.lossless ? " ll" : ""); });
+    np("dur", e => e.textContent = fmt(t.duration));
+    $("#fullBg").style.backgroundImage = t.cover ? `url("${t.cover.replace(/"/g, "%22")}")` : "none";
+    document.title = `${t.title} · Тембр`;
+    $$(".row[data-id]").forEach(r => r.classList.toggle("on", r.dataset.id === t.id));
+    syncFavBtn();
+    if ("mediaSession" in navigator){
+      try { navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, album: t.album || t.source, artwork: t.cover ? [{ src: t.cover, sizes: "480x480" }] : [] }); } catch {}
+    }
+    if (native) try { native.onTrack(t.title, t.artist, t.cover || ""); } catch {}
+    if (!$("#sheet").hidden && $("#sheet").dataset.kind === "queue") openQueue();
+  }
+
+  audio.addEventListener("play", () => { document.body.classList.add("playing"); np("playicon", u => u.setAttribute("href", "#i-pause")); if (native) try { native.onPlayState(true); } catch {} });
+  audio.addEventListener("pause", () => { document.body.classList.remove("playing"); np("playicon", u => u.setAttribute("href", "#i-play")); if (native) try { native.onPlayState(false); } catch {} });
+  audio.addEventListener("playing", () => { S.fails = 0; });
+  audio.addEventListener("ended", () => {
+    if (S.sleepEnd){ S.sleepEnd = false; setSleep(0); audio.pause(); toast("Таймер сна: музыка остановлена"); return; }
+    if (S.repeat === "one"){ audio.currentTime = 0; tryPlay(); } else next(true);
+  });
+  audio.addEventListener("loadedmetadata", () => { if (isFinite(audio.duration)) np("dur", e => e.textContent = fmt(audio.duration)); });
+  audio.addEventListener("error", async () => {
+    const t = cur(); if (!t || !audio.src) return;
+    const srcs = t.srcs || [t.src];
+    if (S.srcIdx + 1 < srcs.length){ S.srcIdx++; audio.src = srcs[S.srcIdx]; audio.load(); tryPlay(); return; }
+    if (t.source === "Audius" && !t._refreshed){
+      t._refreshed = true;
+      try { Object.assign(t, await Audius.fresh(t)); S.srcIdx = 0; audio.src = t.srcs[0]; audio.load(); tryPlay(); return; } catch {}
+    }
+    S.fails++;
+    const code = audio.error ? audio.error.code : "?";
+    if (S.fails >= 3){ audio.pause(); toast(`Треки не загружаются (код ${code}). Проверьте интернет.`); return; }
+    toast(t.lossless ? "Этот FLAC не открылся. Включаю следующий трек." : "Трек недоступен. Включаю следующий.");
+    setTimeout(() => next(true), 700);
+  });
+
+  // seek bars
+  let seeking = false;
+  const paint = el => el.style.setProperty("--p", (el.value - el.min) / (el.max - el.min) * 100 + "%");
+  audio.addEventListener("timeupdate", () => {
+    const d = audio.duration || cur()?.duration || 0, p = d ? audio.currentTime / d : 0;
+    document.documentElement.style.setProperty("--prog", (p * 100).toFixed(2) + "%");
+    $("#bar").style.setProperty("--prog", (p * 100).toFixed(2) + "%");
+    if (seeking) return;
+    $$("[data-seek]").forEach(s => { s.value = p * 1000; paint(s); });
+    np("cur", e => e.textContent = fmt(audio.currentTime));
+    if (S.sleepAt && Date.now() >= S.sleepAt){ setSleep(0); audio.pause(); toast("Таймер сна: музыка остановлена"); }
+  });
+  $$("[data-seek]").forEach(s => {
+    s.addEventListener("input", () => { seeking = true; paint(s); np("cur", e => e.textContent = fmt(s.value / 1000 * (audio.duration || 0))); });
+    s.addEventListener("change", () => { if (audio.duration) audio.currentTime = s.value / 1000 * audio.duration; seeking = false; });
+  });
+  const vol = $("#vol");
+  vol.value = store.get("tembr.vol", 90); audio.volume = vol.value / 100; paint(vol);
+  vol.addEventListener("input", () => { audio.volume = vol.value / 100; audio.muted = false; paint(vol); store.set("tembr.vol", +vol.value); });
+
+  /* ---------- sheets: queue & sleep ---------- */
+  function openSheet(kind, html){
+    const sh = $("#sheet"); sh.dataset.kind = kind; sh.innerHTML = html; sh.hidden = false; $("#scrim").hidden = false;
+  }
+  function closeSheet(){ $("#sheet").hidden = true; $("#scrim").hidden = true; }
+  function openQueue(){
+    const items = S.order.slice(Math.max(S.pos, 0)).map(i => S.queue[i]);
+    openSheet("queue", `<div class="sec-head"><h2>Очередь</h2><button class="link" data-close-sheet>Закрыть</button></div>
+      <div class="list">${items.length ? items.map((t, k) => `
+        <div class="row${k === 0 ? " on" : ""}" data-qpos="${S.pos + k}" role="button" tabindex="0">
+          <div class="th">${img(t.cover, t.id, t.title)}</div>
+          <div class="ti"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div>${qBadge(t)}
+        </div>`).join("") : `<div class="status">Очередь пуста. Включите любой трек.</div>`}</div>`);
+  }
+  function setSleep(min){
+    S.sleepAt = 0; S.sleepEnd = false;
+    if (min === "end") S.sleepEnd = true; else if (min) S.sleepAt = Date.now() + min * 60000;
+    $$('[data-act="sleep"]').forEach(b => b.classList.toggle("sleep-on", !!(S.sleepAt || S.sleepEnd)));
+  }
+  function openSleep(){
+    const left = S.sleepAt ? Math.ceil((S.sleepAt - Date.now()) / 60000) : 0;
+    openSheet("sleep", `<div class="sec-head"><h2>Таймер сна</h2><button class="link" data-close-sheet>Закрыть</button></div>
+      <p class="lead" style="font-size:14px">${S.sleepAt ? `Музыка выключится через ${left} мин.` : S.sleepEnd ? "Музыка выключится после этого трека." : "Музыка плавно остановится в выбранное время."}</p>
+      <div class="opts">
+        <button class="opt" data-sleep="15">15 минут</button><button class="opt" data-sleep="30">30 минут</button>
+        <button class="opt" data-sleep="60">1 час</button><button class="opt" data-sleep="end">После трека</button>
+        ${S.sleepAt || S.sleepEnd ? `<button class="opt" data-sleep="0" style="grid-column:1/-1">Выключить таймер</button>` : ""}
+      </div>`);
+  }
+
+  /* ---------- global events ---------- */
+  function go(view){
+    if (view && view !== S.view){ if (!view.startsWith("album:")) S.prevView = view; S.view = view; }
+    closeFull(); render();
+  }
+  function openFull(){ if (!cur()) return; $("#full").hidden = false; history.pushState({ full: 1 }, ""); }
+  function closeFull(){ $("#full").hidden = true; }
+  window.addEventListener("popstate", () => { if (!$("#sheet").hidden) closeSheet(); else if (!$("#full").hidden) closeFull(); });
+
+  document.addEventListener("click", e => {
+    const el = e.target.closest("button, .row, [data-open-full]");
+    if (!el) { if (e.target.id === "scrim") closeSheet(); return; }
+    const d = el.dataset;
+    if (d.fav !== undefined){ e.stopPropagation(); const row = el.closest(".row"); const t = row ? S.lists[row.dataset.list]?.[+row.dataset.i] : null; toggleFav(t || S.favs.find(x => x.id === d.fav)); return; }
+    if (d.list !== undefined){ setQueue(S.lists[d.list], +d.i); return; }
+    if (d.qpos !== undefined){ loadAt(+d.qpos, true); return; }
+    if (d.openFull !== undefined){ openFull(); return; }
+    if (d.closeFull !== undefined){ history.back(); closeFull(); return; }
+    if (d.closeSheet !== undefined){ closeSheet(); return; }
+    if (d.view || d.go){ go(d.view || d.go); return; }
+    if (d.album){ S.prevView = S.view.startsWith("album:") ? S.prevView : S.view; S.view = "album:" + d.album; render(); return; }
+    if (d.genre !== undefined){ S.genre = d.genre; render(); return; }
+    if (d.src){ S.searchSrc = d.src; $$("[data-src]").forEach(b => b.setAttribute("aria-pressed", b === el)); runSearch(); return; }
+    if (d.playall){ setQueue(S.lists[d.playall], 0); return; }
+    if (d.sleep !== undefined){ const v = d.sleep === "end" ? "end" : +d.sleep; setSleep(v); closeSheet(); toast(v === 0 ? "Таймер выключен" : v === "end" ? "Остановлю после этого трека" : `Выключу через ${v} мин.`); return; }
+    switch (d.act){
+      case "toggle": toggle(); break;
+      case "next": next(false); break;
+      case "prev": prev(); break;
+      case "fav": toggleFav(cur()); break;
+      case "queue": openQueue(); break;
+      case "sleep": openSleep(); break;
+      case "mute": audio.muted = !audio.muted; el.style.opacity = audio.muted ? .4 : 1; toast(audio.muted ? "Звук выключен" : "Звук включён"); break;
+      case "shuffle": {
+        S.shuffle = !S.shuffle; $$('[data-act="shuffle"]').forEach(b => b.setAttribute("aria-pressed", S.shuffle));
+        if (S.queue.length){ if (S.shuffle){ S.order = shuffled(S.qi, S.queue.length); S.pos = 0; } else { S.order = [...Array(S.queue.length).keys()]; S.pos = S.qi; } }
+        toast(S.shuffle ? "Перемешивание включено" : "Перемешивание выключено"); break;
+      }
+      case "repeat": {
+        S.repeat = S.repeat === "off" ? "all" : S.repeat === "all" ? "one" : "off";
+        $$('[data-act="repeat"]').forEach(b => { b.setAttribute("aria-pressed", S.repeat !== "off"); b.dataset.mode = S.repeat; });
+        toast(S.repeat === "one" ? "Повтор одного трека" : S.repeat === "all" ? "Повтор всей очереди" : "Повтор выключен"); break;
+      }
+    }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input")) return;
+    if (e.key === "Enter" && e.target.closest(".row")) e.target.closest(".row").click();
+    if (e.code === "Space"){ e.preventDefault(); toggle(); }
+    if (e.key === "ArrowRight" && audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+    if (e.key === "ArrowLeft") audio.currentTime = Math.max(0, audio.currentTime - 10);
+    if (e.key === "Escape"){ closeSheet(); closeFull(); }
+  });
+
+  if ("mediaSession" in navigator){
+    try {
+      navigator.mediaSession.setActionHandler("play", () => tryPlay());
+      navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+      navigator.mediaSession.setActionHandler("nexttrack", () => next(false));
+      navigator.mediaSession.setActionHandler("previoustrack", prev);
+    } catch {}
+  }
+
+  // команды из Android-уведомления
+  window.tembr = { cmd(a){ if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
+                   back(){ if (!$("#sheet").hidden){ closeSheet(); return true; } if (!$("#full").hidden){ closeFull(); return true; } if (S.view !== "home"){ go(S.view.startsWith("album:") ? S.prevView : "home"); return true; } return false; } };
+
+  render();
+})();
+</script>
+</body>
+</html>
