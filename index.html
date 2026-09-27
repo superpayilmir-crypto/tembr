@@ -265,7 +265,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   .mini::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:var(--prog,0%);background:var(--edison)}
   .mini .th{width:44px;height:44px}
   .mini .play{width:40px;height:40px;background:none;color:var(--bone)}
-  .tabs{grid-row:4;display:grid;grid-template-columns:repeat(4,1fr);background:var(--steel);border-top:1px solid var(--rivet);padding:6px 4px calc(6px + var(--sab));margin-top:8px}
+  .tabs{grid-row:4;display:grid;grid-template-columns:repeat(5,1fr);background:var(--steel);border-top:1px solid var(--rivet);padding:6px 4px calc(6px + var(--sab));margin-top:8px}
   .tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--smoke);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
   .tabs button svg{width:22px;height:22px}
   .tabs button[aria-current="page"]{color:var(--edison)}
@@ -293,6 +293,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   <symbol id="i-vol" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9a4 4 0 0 1 0 6"/></g></symbol>
   <symbol id="i-home" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
   <symbol id="i-wave" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 12h1M7 8v8M11 4v16M15 8v8M19 10v4M22 12h0"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></g></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
 </svg>
 
@@ -305,6 +306,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     <nav class="nav" aria-label="Разделы">
       <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg><span class="nav-label">Главная</span></button>
       <button data-view="lossless"><svg><use href="#i-wave"/></svg><span class="nav-label">Без потерь</span></button>
+      <button data-view="tatar"><svg><use href="#i-note"/></svg><span class="nav-label">Татарча</span></button>
       <button data-view="search"><svg><use href="#i-search"/></svg><span class="nav-label">Поиск</span></button>
       <button data-view="fav"><svg><use href="#i-heart"/></svg><span class="nav-label">Любимое</span></button>
     </nav>
@@ -351,6 +353,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   <nav class="tabs" aria-label="Разделы">
     <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Главная</button>
     <button data-view="lossless"><svg><use href="#i-wave"/></svg>Lossless</button>
+    <button data-view="tatar"><svg><use href="#i-note"/></svg>Татарча</button>
     <button data-view="search"><svg><use href="#i-search"/></svg>Поиск</button>
     <button data-view="fav"><svg><use href="#i-heart"/></svg>Любимое</button>
   </nav>
@@ -468,22 +471,34 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
       return (j.response?.docs || []).map(d => ({ id: d.identifier, title: d.title || d.identifier,
         artist: Array.isArray(d.creator) ? d.creator[0] : (d.creator || "Разные исполнители"), date: String(d.date || "").slice(0,10) }));
     },
+    async audio(q, rows = 36){
+      const query = `mediatype:audio AND (${q}) AND NOT collection:(audio_religion OR audio_bookspoetry OR podcasts OR librivoxaudio) AND NOT title:(bible OR библия OR quran OR nasheeds OR аудиокнига OR podcast)`;
+      const p = new URLSearchParams({ q: query, rows: String(rows), output: "json" });
+      ["identifier","title","creator","date"].forEach(f => p.append("fl[]", f));
+      p.append("sort[]", "downloads desc");
+      const j = await getJSON(`https://archive.org/advancedsearch.php?${p}`);
+      return (j.response?.docs || []).map(d => ({ id: d.identifier, title: d.title || d.identifier,
+        artist: Array.isArray(d.creator) ? d.creator[0] : (d.creator || "Неизвестный исполнитель"), date: String(d.date || "").slice(0,10), badge: "Архив" }));
+    },
     async album(id){
       const j = await getJSON(`https://archive.org/metadata/${encodeURIComponent(id)}`);
       const md = j.metadata || {}, files = j.files || [];
-      const has24 = files.some(f => /24bit flac/i.test(f.format || ""));
-      const pick = files.filter(f => has24 ? /24bit flac/i.test(f.format || "") : f.format === "Flac");
+      const fmts = [["24bit Flac","FLAC 24 бит",true],["Flac","FLAC 16 бит",true],["VBR MP3","MP3",false],["MP3","MP3",false],["Ogg Vorbis","OGG",false]];
+      const isAudio = f => f.source !== "metadata" && !/spectrogram|peaks|png|jpeg|json|text|torrent/i.test(f.format || "");
+      const best = fmts.find(([fm]) => files.some(f => (f.format || "").toLowerCase() === fm.toLowerCase() && isAudio(f))) || fmts[0];
+      const pick = files.filter(f => (f.format || "").toLowerCase() === best[0].toLowerCase() && isAudio(f));
       const no = f => parseInt(String(f.track || "").split("/")[0], 10);
       pick.sort((a,b) => { const x = no(a), y = no(b); return (isNaN(x)||isNaN(y) ? 0 : x - y) || a.name.localeCompare(b.name, undefined, {numeric:true}); });
       const artist = Array.isArray(md.creator) ? md.creator[0] : (md.creator || "Разные исполнители");
-      const cover = Archive.cover(id), q = has24 ? "FLAC 24 бит" : "FLAC 16 бит";
+      const cover = Archive.cover(id), q = best[1], ll = best[2];
+      const colls = [].concat(md.collection || []);
       const len = v => !v ? 0 : String(v).includes(":") ? String(v).split(":").reduce((s,x) => s*60 + parseFloat(x), 0) : parseFloat(v) || 0;
       const tracks = pick.map(f => {
         const src = `https://archive.org/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`;
         return { id: `ia:${id}/${f.name}`, source: "Internet Archive", title: f.title || f.name.replace(/\.[^.]+$/, ""), artist, cover,
-          duration: len(f.length), src, srcs: [src], quality: q, lossless: true, album: md.title };
+          duration: len(f.length), src, srcs: [src], quality: q, lossless: ll, album: md.title };
       });
-      return { id, title: md.title || id, artist, cover, tracks, date: md.date || "", venue: md.venue || "", quality: q };
+      return { id, title: md.title || id, artist, cover, tracks, date: md.date || "", venue: md.venue || "", quality: q, lossless: ll, live: colls.includes("etree") };
     }
   };
 
@@ -531,12 +546,13 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         <div class="frame">${img(Archive.cover(a.id), a.id, a.artist)}<span class="pp">${icon("i-play")}</span></div>
         <div class="t">${esc(a.title)}</div>
         <div class="a">${esc(a.artist)}</div>
-        <div class="meta"><span class="q ll">FLAC</span>${a.date ? `<span class="q">${esc(a.date.slice(0,4))}</span>` : ""}</div>
+        <div class="meta">${a.badge ? `<span class="q">${esc(a.badge)}</span>` : `<span class="q ll">FLAC</span>`}${a.date ? `<span class="q">${esc(a.date.slice(0,4))}</span>` : ""}</div>
       </button>`).join("")}</div>`;
   const errBox = e => e.geo
     ? `<div class="status err">Audius не отвечает на запросы из вашей страны. Включите VPN и откройте раздел ещё раз. Концерты в разделе «Без потерь» работают без VPN.</div>`
     : `<div class="status err">Не удалось загрузить (${esc(e.message)}). Проверьте интернет и откройте раздел ещё раз.</div>`;
 
+  const TATAR_Q = '(title:(татар OR татарская OR татарские OR татарча OR "татар җырлары" OR tatar) OR subject:(tatar OR татар OR татарская OR "tatar music" OR "tatar folk" OR "kirim tatar") OR creator:(Рахманкулова OR Rakhmankulova OR Фәтхетдинов OR Сафиуллин OR Хәйруллина OR Тимерҗанова OR "Мунча Ташы")) AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun)';
   const GENRES = [["","Все жанры"],["Electronic","Электроника"],["Hip-Hop/Rap","Хип-хоп"],["Pop","Поп"],["Rock","Рок"],["R&B/Soul","R&B"],["Lo-Fi","Lo-Fi"],["House","Хаус"],["Techno","Техно"],["Jazz","Джаз"],["Ambient","Эмбиент"],["Classical","Классика"]];
 
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -572,11 +588,17 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
           <div id="trend">${skelRows(8)}</div>
         </section>
         <section class="sec">
+          <div class="sec-head"><h2>Татар җырлары</h2><button class="link" data-go="tatar">Все →</button></div>
+          <div id="tatTeaser">${skelCards(6, "rail")}</div>
+        </section>
+        <section class="sec">
           <div class="sec-head"><h2>Концерты без потерь</h2><button class="link" data-go="lossless">Все →</button></div>
           <div id="llTeaser">${skelCards(6, "rail")}</div>
         </section>`;
       Audius.trending(S.genre).then(ts => { if (my === tok) $("#trend").innerHTML = ts.length ? trackRows(ts, "trend") : `<div class="status">В этом жанре пока пусто.</div>`; })
         .catch(e => { if (my === tok) $("#trend").innerHTML = errBox(e); });
+      Archive.audio(TATAR_Q, 12).then(as => { if (my === tok) $("#tatTeaser").innerHTML = as.length ? albumCards(as, "rail") : `<div class="status">Пока ничего не нашлось.</div>`; })
+        .catch(e => { if (my === tok) $("#tatTeaser").innerHTML = errBox(e); });
       Archive.albums("").then(as => { if (my === tok) $("#llTeaser").innerHTML = albumCards(as.slice(0, 12), "rail"); })
         .catch(e => { if (my === tok) $("#llTeaser").innerHTML = errBox(e); });
     }
@@ -596,6 +618,25 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
       run();
     }
 
+    else if (S.view === "tatar"){
+      page.innerHTML = `
+        <div class="sec"><span class="tag">Internet Archive · кассеты, пластинки, фольклор</span><h1>Татар җырлары</h1>
+          <p class="lead">Татарская эстрада 90-х с кассет, народные песни и старые граммофонные записи из открытого архива. Можно искать по исполнителю или названию.</p></div>
+        <label class="search">${icon("i-search")}<input id="tq" type="search" placeholder="Например: Салават, Зиннур Сафиуллин, халык җыры" value="${esc(S.tq || "")}" autocomplete="off"></label>
+        <section id="tGrid">${skelCards(12)}</section>`;
+      const run = () => {
+        const q = (S.tq || "").replace(/[()"]/g, " ").trim();
+        const query = q ? `(${q}) AND ${TATAR_Q}` : TATAR_Q;
+        $("#tGrid").innerHTML = skelCards(12);
+        Archive.audio(query, 60).then(as => { if (my !== tok) return;
+            if (!as.length && q) return Archive.audio(`(${q})`, 36).then(bs => { if (my === tok) $("#tGrid").innerHTML = bs.length ? albumCards(bs) : `<div class="status">Ничего не нашлось по запросу «${esc(q)}».</div>`; });
+            $("#tGrid").innerHTML = as.length ? albumCards(as) : `<div class="status">Ничего не нашлось.</div>`; })
+          .catch(e => { if (my === tok) $("#tGrid").innerHTML = errBox(e); });
+      };
+      let t; $("#tq").addEventListener("input", e => { S.tq = e.target.value.trim(); clearTimeout(t); t = setTimeout(run, 450); });
+      run();
+    }
+
     else if (S.view.startsWith("album:")){
       const id = S.view.slice(6);
       page.innerHTML = `<button class="back" data-go="${esc(S.prevView)}">← Назад</button><div id="alb">${skelRows(10)}</div>`;
@@ -606,13 +647,13 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
           <div class="sec" style="gap:28px">
             <div class="album-hero">
               <div class="frame">${img(a.cover, a.id, a.artist)}</div>
-              <div class="info"><span class="tag">Концерт · ${a.tracks.length} треков</span><h1>${esc(a.title)}</h1>
+              <div class="info"><span class="tag">${a.live ? "Концерт" : "Альбом"} · ${a.tracks.length} треков</span><h1>${esc(a.title)}</h1>
                 <span class="by">${esc(a.artist)}${a.venue ? " · " + esc(a.venue) : ""}${a.date ? " · " + esc(String(a.date).slice(0,10)) : ""}</span>
-                <div class="actions"><button class="btn primary" data-playall="alb">${icon("i-play")}Слушать</button><span class="q ll">${esc(a.quality)}</span>
+                <div class="actions"><button class="btn primary" data-playall="alb">${icon("i-play")}Слушать</button><span class="q${a.lossless ? " ll" : ""}">${esc(a.quality)}</span>
                   <a class="link" href="https://archive.org/details/${encodeURIComponent(a.id)}" target="_blank" rel="noopener">archive.org ↗</a></div>
               </div>
             </div>
-            ${a.tracks.length ? trackRows(a.tracks, "alb") : `<div class="status">В этой записи нет FLAC-файлов.</div>`}
+            ${a.tracks.length ? trackRows(a.tracks, "alb") : `<div class="status">В этой записи нет аудиофайлов.</div>`}
           </div>`;
       } catch(e){ if (my === tok) $("#alb").innerHTML = errBox(e); }
     }
@@ -625,6 +666,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
           <button data-src="all" aria-pressed="${S.searchSrc==="all"}">Везде</button>
           <button data-src="au" aria-pressed="${S.searchSrc==="au"}">Треки</button>
           <button data-src="ia" aria-pressed="${S.searchSrc==="ia"}">FLAC-концерты</button>
+          <button data-src="ar" aria-pressed="${S.searchSrc==="ar"}">Архив</button>
         </div>
         <div id="sres" class="sec"></div>`;
       const inp = $("#sq"); if (matchMedia("(min-width:821px)").matches) inp.focus();
@@ -644,15 +686,19 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   function runSearch(){
     const my = tok, box = $("#sres"); if (!box) return;
     const q = S.searchQ;
-    if (!q){ box.innerHTML = `<div class="status">Введите запрос. Ищу сразу в Audius и в архиве FLAC-концертов.</div>`; return; }
-    const au = S.searchSrc !== "ia", ia = S.searchSrc !== "au";
+    if (!q){ box.innerHTML = `<div class="status">Введите запрос. Ищу в Audius, в FLAC-концертах и в записях Internet Archive, в том числе татарских.</div>`; return; }
+    const au = S.searchSrc === "all" || S.searchSrc === "au", ia = S.searchSrc === "all" || S.searchSrc === "ia", ar = S.searchSrc === "all" || S.searchSrc === "ar";
     box.innerHTML = (au ? `<section class="sec" id="rAu"><div class="sec-head"><h2>Треки</h2></div>${skelRows(6)}</section>` : "") +
-                    (ia ? `<section class="sec" id="rIa"><div class="sec-head"><h2>FLAC-концерты</h2></div>${skelCards(4)}</section>` : "");
+                    (ia ? `<section class="sec" id="rIa"><div class="sec-head"><h2>FLAC-концерты</h2></div>${skelCards(4)}</section>` : "") +
+                    (ar ? `<section class="sec" id="rAr"><div class="sec-head"><h2>Записи в архиве</h2></div>${skelCards(4)}</section>` : "");
     const head = h => `<div class="sec-head"><h2>${h}</h2></div>`;
     if (au) Audius.search(q).then(ts => { if (my !== tok || S.searchQ !== q) return; $("#rAu").innerHTML = head("Треки") + (ts.length ? trackRows(ts, "sAu") : `<div class="status">Треков не нашлось.</div>`); })
       .catch(e => { const b = $("#rAu"); if (b) b.innerHTML = head("Треки") + errBox(e); });
     if (ia) Archive.albums(q).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rIa").innerHTML = head("FLAC-концерты") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">Концертов не нашлось.</div>`); })
       .catch(e => { const b = $("#rIa"); if (b) b.innerHTML = head("FLAC-концерты") + errBox(e); });
+    const safe = q.replace(/[()":]/g, " ").trim();
+    if (ar) Archive.audio(`(${safe})`, 24).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rAr").innerHTML = head("Записи в архиве") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">В архиве ничего не нашлось.</div>`); })
+      .catch(e => { const b = $("#rAr"); if (b) b.innerHTML = head("Записи в архиве") + errBox(e); });
   }
 
   /* ---------- playback ---------- */
