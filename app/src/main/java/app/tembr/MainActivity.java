@@ -2,6 +2,9 @@ package app.tembr;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.PictureInPictureParams;
+import android.content.res.Configuration;
+import android.util.Rational;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -28,6 +31,35 @@ public class MainActivity extends Activity {
     static MainActivity current;
     private WebView web;
     private final Handler ui = new Handler(Looper.getMainLooper());
+    /** Сейчас идёт видео (ТВ или кино): при выходе на главный экран уходим в маленькое окно. */
+    private volatile boolean videoPlaying = false;
+
+    private PictureInPictureParams pipParams(boolean auto) {
+        PictureInPictureParams.Builder b = new PictureInPictureParams.Builder().setAspectRatio(new Rational(16, 9));
+        if (Build.VERSION.SDK_INT >= 31) { b.setAutoEnterEnabled(auto); b.setSeamlessResizeEnabled(true); }
+        return b.build();
+    }
+
+    private void updatePip() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            try { setPictureInPictureParams(pipParams(videoPlaying)); } catch (Exception ignored) {}
+        }
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        // Android 8–11: входим в окошко вручную (на 12+ это делает система сама)
+        if (videoPlaying && Build.VERSION.SDK_INT >= 26 && Build.VERSION.SDK_INT < 31) {
+            try { enterPictureInPictureMode(pipParams(false)); } catch (Exception ignored) {}
+        }
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean inPip, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(inPip, newConfig);
+        if (web != null) web.evaluateJavascript("window.tembr && window.tembr.pip && window.tembr.pip(" + inPip + ")", null);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,6 +161,12 @@ public class MainActivity extends Activity {
             PlaybackService.title = title;
             PlaybackService.artist = artist;
             PlaybackService.refresh(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void onVideo(boolean playing) {
+            videoPlaying = playing;
+            ui.post(MainActivity.this::updatePip);
         }
 
         @JavascriptInterface

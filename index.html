@@ -260,6 +260,15 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .official span{color:var(--ash);font-size:13.5px}
 .official svg{width:26px;height:26px;color:var(--edison);flex:none}
 
+.screen.mini{visibility:hidden;pointer-events:none}
+body.pipmode .screen{padding:0!important;animation:none}
+body.pipmode .screen-top,body.pipmode .screen-note,body.pipmode .spin{display:none!important}
+body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
+body.pipmode .screen-wrap video{min-height:0}
+.pipbar{display:flex;align-items:center;gap:10px;margin:0 8px 6px;padding:8px 10px;background:var(--iron2);border:1px solid var(--edison);font-size:13px}
+.pipbar b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.pipbar .btn{height:34px;padding:0 12px;font-size:12px}
+
 /* ---------- sheet (queue / sleep) ---------- */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30}
 .sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);max-height:72vh;overflow:auto;background:var(--iron);border:1px solid var(--rivet);border-bottom:0;z-index:31;padding:18px 18px calc(18px + var(--sab));display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
@@ -337,6 +346,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   <symbol id="i-film" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M7 3v18M17 3v18M3 8h4M3 12h4M3 16h4M17 8h4M17 12h4M17 16h4"/></g></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-out" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
+  <symbol id="i-pip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="1"/><rect x="12" y="12" width="8" height="6" fill="currentColor"/></g></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
 </svg>
 
@@ -441,9 +451,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 <section class="screen" id="screen" hidden aria-label="Просмотр">
   <div class="screen-top">
     <div class="ti"><b id="scTitle"></b><span id="scSub"></span></div>
+    <button class="ib" data-pip id="pipBtn" title="Маленькое окно" hidden><svg><use href="#i-pip"/></svg></button>
     <button class="ib" data-close-screen title="Закрыть"><svg><use href="#i-close"/></svg></button>
   </div>
-  <div class="screen-wrap"><video id="video" controls playsinline webkit-playsinline preload="auto"></video><div class="spin" id="scSpin" hidden><i></i></div></div>
+  <div class="screen-wrap"><video id="video" controls playsinline webkit-playsinline autopictureinpicture x-webkit-airplay="allow" preload="auto"></video><div class="spin" id="scSpin" hidden><i></i></div></div>
   <div class="screen-note" id="scNote"></div>
 </section>
 <div class="toast" id="toast" hidden></div>
@@ -1219,7 +1230,40 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     const c = scList && scList[scIdx]; if (c && c.url === (hls ? hls.url : video.currentSrc) ) TV.health[c.url] = "ok";
     scNote(scList ? `В эфире. <button class="btn ghost" data-sc-prev>← Предыдущий</button><button class="btn ghost" data-sc-next>Следующий →</button>` : ""); });
   video.addEventListener("waiting", () => { if (!$("#screen").hidden) $("#scSpin").hidden = false; });
-  function closeScreen(){ ++scToken; clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; }
+  // ---- «картинка в картинке» ----
+  const pipSupported = () => !!(document.pictureInPictureEnabled || (video.webkitSupportsPresentationMode && video.webkitSupportsPresentationMode("picture-in-picture")));
+  const inWebPip = () => document.pictureInPictureElement === video || video.webkitPresentationMode === "picture-in-picture";
+  async function enterPip(){
+    try {
+      if (video.requestPictureInPicture && document.pictureInPictureEnabled) await video.requestPictureInPicture();
+      else if (video.webkitSetPresentationMode) video.webkitSetPresentationMode("picture-in-picture");
+    } catch (e) { toast("Маленькое окно недоступно на этом устройстве."); }
+  }
+  function onPipEnter(){ $("#screen").classList.add("mini"); }
+  function onPipLeave(){ $("#screen").classList.remove("mini"); if (video.paused) closeScreen(); }
+  video.addEventListener("enterpictureinpicture", onPipEnter);
+  video.addEventListener("leavepictureinpicture", onPipLeave);
+  video.addEventListener("webkitpresentationmodechanged", () => { video.webkitPresentationMode === "picture-in-picture" ? onPipEnter() : onPipLeave(); });
+  $("#pipBtn").hidden = !pipSupported() && !native;
+
+  // сообщаем Android-оболочке о видео: фоновая служба, уведомление и авто-окошко при выходе
+  video.addEventListener("play", () => {
+    audio.pause();
+    if (native) try { native.onVideo(true); native.onTrack($("#scTitle").textContent, $("#scSub").textContent || "Тембр ТВ", ""); native.onPlayState(true); } catch {}
+    if ("mediaSession" in navigator) try { navigator.mediaSession.metadata = new MediaMetadata({ title: $("#scTitle").textContent, artist: $("#scSub").textContent || "Тембр" }); navigator.mediaSession.playbackState = "playing"; } catch {}
+  });
+  video.addEventListener("pause", () => {
+    if (native) try { native.onVideo(false); native.onPlayState(false); } catch {}
+    if ("mediaSession" in navigator) try { navigator.mediaSession.playbackState = "paused"; } catch {}
+  });
+  // iPhone/Chrome: при сворачивании пробуем уйти в окошко сами (где браузер это разрешает)
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && !$("#screen").hidden && !video.paused && !inWebPip() && !native && video.webkitSetPresentationMode) {
+      try { video.webkitSetPresentationMode("picture-in-picture"); } catch {}
+    }
+  });
+
+  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; }
 
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
@@ -1258,7 +1302,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   }
   function openFull(){ if (!cur()) return; $("#full").hidden = false; history.pushState({ full: 1 }, ""); }
   function closeFull(){ $("#full").hidden = true; }
-  window.addEventListener("popstate", () => { if (!$("#screen").hidden) { closeScreen(); return; } if (!$("#sheet").hidden) closeSheet(); else if (!$("#full").hidden) closeFull(); });
+  window.addEventListener("popstate", () => { if (!$("#screen").hidden) { if ($("#screen").classList.contains("mini")) return; closeScreen(); return; } if (!$("#sheet").hidden) closeSheet(); else if (!$("#full").hidden) closeFull(); });
 
   document.addEventListener("click", e => {
     const el = e.target.closest("button, .row, [data-open-full]");
@@ -1273,6 +1317,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (d.hideInstall !== undefined){ store.set("tembr.hideInstall", true); $("#installTip")?.remove(); return; }
     if (d.view || d.go){ go(d.view || d.go); return; }
     if (d.album){ S.prevView = S.view.startsWith("album:") ? S.prevView : S.view; S.view = "album:" + d.album; render(); return; }
+    if (d.pip !== undefined){ if (native && !pipSupported()) toast("Сверните приложение кнопкой «Домой», и видео уйдёт в маленькое окно."); else enterPip(); return; }
     if (d.closeScreen !== undefined){ history.back(); closeScreen(); return; }
     if (d.chan){ S.chan = d.chan; S.cq = ""; S.tvAll = null; render(); return; }
     if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ scList = L.slice(); playChannel(+d.tv, false); } return; }
@@ -1316,15 +1361,17 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 
   if ("mediaSession" in navigator){
     try {
-      navigator.mediaSession.setActionHandler("play", () => tryPlay());
-      navigator.mediaSession.setActionHandler("pause", () => audio.pause());
-      navigator.mediaSession.setActionHandler("nexttrack", () => next(false));
-      navigator.mediaSession.setActionHandler("previoustrack", prev);
+      navigator.mediaSession.setActionHandler("play", () => videoActive() ? video.play() : tryPlay());
+      navigator.mediaSession.setActionHandler("pause", () => videoActive() ? video.pause() : audio.pause());
+      navigator.mediaSession.setActionHandler("nexttrack", () => videoActive() ? (scList && playChannel(scIdx + 1, true)) : next(false));
+      navigator.mediaSession.setActionHandler("previoustrack", () => videoActive() ? (scList && playChannel(scIdx - 1, true)) : prev());
     } catch {}
   }
 
   // команды из Android-уведомления
-  window.tembr = { cmd(a){ if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
+  const videoActive = () => !$("#screen").hidden && (video.getAttribute("src") || hls);
+  window.tembr = { cmd(a){ if (videoActive()){ if (a === "toggle") video.paused ? video.play() : video.pause(); else if (a === "pause") video.pause(); else if (a === "next" && scList) playChannel(scIdx + 1, true); else if (a === "prev" && scList) playChannel(scIdx - 1, true); return; } if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
+                   pip(on){ document.body.classList.toggle("pipmode", !!on); },
                    back(){ if (!$("#screen").hidden){ closeScreen(); return true; } if (!$("#sheet").hidden){ closeSheet(); return true; } if (!$("#full").hidden){ closeFull(); return true; } if (S.view !== "home"){ go(S.view.startsWith("album:") ? S.prevView : "home"); return true; } return false; } };
 
   // офлайн-оболочка для установленного приложения (iPhone / Android через браузер)
