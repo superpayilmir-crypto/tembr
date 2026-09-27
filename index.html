@@ -552,7 +552,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     ? `<div class="status err">Audius не отвечает на запросы из вашей страны. Включите VPN и откройте раздел ещё раз. Концерты в разделе «Без потерь» работают без VPN.</div>`
     : `<div class="status err">Не удалось загрузить (${esc(e.message)}). Проверьте интернет и откройте раздел ещё раз.</div>`;
 
-  const TATAR_Q = '(title:(татар OR татарская OR татарские OR татарча OR "татар җырлары" OR tatar) OR subject:(tatar OR татар OR татарская OR "tatar music" OR "tatar folk" OR "kirim tatar") OR creator:(Рахманкулова OR Rakhmankulova OR Фәтхетдинов OR Сафиуллин OR Хәйруллина OR Тимерҗанова OR "Мунча Ташы")) AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun)';
+  const TATAR_Q = '(title:(татар OR татарская OR татарские OR татарча OR "татар җырлары" OR tatar) OR subject:(tatar OR татар OR татарская OR "tatar music" OR "tatar folk" OR "kirim tatar") OR creator:(Рахманкулова OR Rakhmankulova OR Фәтхетдинов OR Сафиуллин OR Хәйруллина OR Тимерҗанова OR "Мунча Ташы")) AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun OR newscast OR episode)';
   const GENRES = [["","Все жанры"],["Electronic","Электроника"],["Hip-Hop/Rap","Хип-хоп"],["Pop","Поп"],["Rock","Рок"],["R&B/Soul","R&B"],["Lo-Fi","Lo-Fi"],["House","Хаус"],["Techno","Техно"],["Jazz","Джаз"],["Ambient","Эмбиент"],["Classical","Классика"]];
 
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
