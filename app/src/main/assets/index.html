@@ -223,6 +223,30 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .full .ib svg{width:24px;height:24px}
 .full-foot{display:flex;justify-content:space-between;align-items:center}
 
+/* ---------- screen (TV / films) ---------- */
+.screen{position:fixed;inset:0;z-index:25;background:#0b0a09;display:flex;flex-direction:column;padding:calc(10px + var(--sat)) 0 var(--sab);animation:up .25s ease-out}
+.screen-top{display:flex;align-items:center;gap:10px;padding:0 12px 10px}
+.screen-top .ti{flex:1}
+.screen video{flex:1;width:100%;min-height:0;background:#000;object-fit:contain}
+.screen-note{padding:10px 16px;color:var(--ash);font-size:13px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--rivet);background:var(--iron);text-align:left}
+.tile:hover{border-color:var(--edison)}
+.tile svg{width:22px;height:22px;color:var(--edison);flex:none}
+.tile b{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-weight:500;font-size:15px}
+.tvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tv{display:flex;flex-direction:column;gap:8px;text-align:left;padding:10px;border:1px solid var(--rivet);background:var(--iron);min-width:0}
+.tv:hover{border-color:var(--edison)}
+.tv .logo{aspect-ratio:16/9;width:100%;max-width:100%;background:#f1ece4;display:grid;place-items:center;overflow:hidden}
+.tv .logo img{max-width:80%;max-height:80%;object-fit:contain}
+.tv b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv span{font-size:12px;color:var(--ash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.film .frame{aspect-ratio:2/3}
+.official{display:flex;gap:14px;align-items:center;padding:16px;border:1px solid var(--rivet);background:linear-gradient(90deg,var(--glow),transparent 70%);text-decoration:none}
+.official b{font-family:var(--display);text-transform:uppercase;letter-spacing:.05em;font-weight:600;display:block;font-size:16px}
+.official span{color:var(--ash);font-size:13.5px}
+.official svg{width:26px;height:26px;color:var(--edison);flex:none}
+
 /* ---------- sheet (queue / sleep) ---------- */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30}
 .sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);max-height:72vh;overflow:auto;background:var(--iron);border:1px solid var(--rivet);border-bottom:0;z-index:31;padding:18px 18px calc(18px + var(--sab));display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
@@ -296,6 +320,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   <symbol id="i-wave" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 12h1M7 8v8M11 4v16M15 8v8M19 10v4M22 12h0"/></symbol>
   <symbol id="i-note" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></g></symbol>
   <symbol id="i-radio" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1"/><path d="M7 8l10-5"/><circle cx="15.5" cy="14" r="2.5"/><path d="M6.5 12h4M6.5 16h4"/></g></symbol>
+  <symbol id="i-tv" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="1"/><path d="M8 2l4 4 4-4M8 22h8"/></g></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M7 3v18M17 3v18M3 8h4M3 12h4M3 16h4M17 8h4M17 12h4M17 16h4"/></g></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
 </svg>
 
@@ -308,6 +336,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     <nav class="nav" aria-label="Разделы">
       <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg><span class="nav-label">Главная</span></button>
       <button data-view="radio"><svg><use href="#i-radio"/></svg><span class="nav-label">Радио</span></button>
+      <button data-view="tv"><svg><use href="#i-tv"/></svg><span class="nav-label">Телеканалы</span></button>
+      <button data-view="films"><svg><use href="#i-film"/></svg><span class="nav-label">Кино</span></button>
       <button data-view="lossless"><svg><use href="#i-wave"/></svg><span class="nav-label">Без потерь</span></button>
       <button data-view="tatar"><svg><use href="#i-note"/></svg><span class="nav-label">Народы</span></button>
       <button data-view="search"><svg><use href="#i-search"/></svg><span class="nav-label">Поиск</span></button>
@@ -356,9 +386,9 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   <nav class="tabs" aria-label="Разделы">
     <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Главная</button>
     <button data-view="radio"><svg><use href="#i-radio"/></svg>Радио</button>
-    <button data-view="tatar"><svg><use href="#i-note"/></svg>Народы</button>
+    <button data-view="tv"><svg><use href="#i-tv"/></svg>ТВ</button>
+    <button data-view="films"><svg><use href="#i-film"/></svg>Кино</button>
     <button data-view="search"><svg><use href="#i-search"/></svg>Поиск</button>
-    <button data-view="fav"><svg><use href="#i-heart"/></svg>Любимое</button>
   </nav>
 </div>
 
@@ -395,6 +425,14 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 
 <div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" hidden></div>
+<section class="screen" id="screen" hidden aria-label="Просмотр">
+  <div class="screen-top">
+    <div class="ti"><b id="scTitle"></b><span id="scSub"></span></div>
+    <button class="ib" data-close-screen title="Закрыть"><svg><use href="#i-close"/></svg></button>
+  </div>
+  <video id="video" controls playsinline preload="metadata"></video>
+  <div class="screen-note" id="scNote"></div>
+</section>
 <div class="toast" id="toast" hidden></div>
 <audio id="audio" preload="auto"></audio>
 
@@ -503,6 +541,58 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     turkish: { nav: "Türkçe",    sets: [{ countrycode: "TR" }] },
     russia:  { nav: "Россия",    sets: [{ countrycode: "RU" }] },
     world:   { nav: "Весь мир",  sets: [{}] }
+  };
+
+  const TV = {
+    base: "https://iptv-org.github.io/iptv/",
+    cache: {},
+    async list(path){
+      if (TV.cache[path]) return TV.cache[path];
+      const r = await fetch(TV.base + path); if (!r.ok) throw new Error("сервер ответил " + r.status);
+      const lines = (await r.text()).split(/\r?\n/); const out = []; let cur = null;
+      for (const ln of lines){
+        if (ln.startsWith("#EXTINF")){
+          const attr = k => (ln.match(new RegExp(k + '="([^"]*)"')) || [])[1] || "";
+          cur = { name: ln.slice(ln.lastIndexOf(",") + 1).trim(), logo: attr("tvg-logo"), group: attr("group-title") };
+        } else if (cur && ln && !ln.startsWith("#")){ cur.url = ln.trim(); out.push(cur); cur = null; }
+      }
+      const seen = new Set();
+      const res = out.filter(c => (native || c.url.startsWith("https:")) && !/geo-blocked/i.test(c.name))
+        .filter(c => { const k = c.name.replace(/\s*\(.*$/, "").toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+        .map(c => ({ ...c, title: c.name.replace(/\s*\[[^\]]*\]/g, "").trim(), part: /not 24\/7/i.test(c.name) }));
+      TV.cache[path] = res; return res;
+    }
+  };
+  const CHANNELS = {
+    ru:    { nav: "Россия",       load: () => TV.list("countries/ru.m3u") },
+    tat:   { nav: "Татарстан",    load: async () => { const [a, b] = await Promise.all([TV.list("languages/tat.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /татар|tatar|тнв|tnv|казан|kazan|huzur|хузур/i.test(c.name))]; } },
+    bak:   { nav: "Башкортостан", load: async () => { const [a, b] = await Promise.all([TV.list("languages/bak.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /башк|bashk|бст|bst|уфа|ufa|тамыр|tamyr/i.test(c.name))]; } },
+    tr:    { nav: "Türkiye",      load: () => TV.list("countries/tr.m3u") },
+    news:  { nav: "Новости мира", load: () => TV.list("categories/news.m3u") },
+    music: { nav: "Музыка",       load: () => TV.list("categories/music.m3u") },
+    kids:  { nav: "Детям",        load: () => TV.list("categories/kids.m3u") },
+    docs:  { nav: "Документальное", load: () => TV.list("categories/documentary.m3u") }
+  };
+  const Films = {
+    // только фильмы, которые перешли в общественное достояние или выложены под свободной лицензией
+    async list(q){
+      const base = 'mediatype:movies AND collection:feature_films AND (licenseurl:(*publicdomain* OR *creativecommons*) OR year:[1890 TO 1929])';
+      const query = q ? `(${q}) AND ${base}` : base;
+      const p = new URLSearchParams({ q: query, rows: "48", output: "json" });
+      ["identifier","title","year","creator"].forEach(f => p.append("fl[]", f));
+      p.append("sort[]", "downloads desc");
+      const j = await getJSON(`https://archive.org/advancedsearch.php?${p}`);
+      return (j.response?.docs || []).map(d => ({ id: d.identifier, title: d.title || d.identifier, year: d.year || "" }));
+    },
+    async file(id){
+      const j = await getJSON(`https://archive.org/metadata/${encodeURIComponent(id)}`);
+      const vids = (j.files || []).filter(f => /\.(mp4|m4v)$/i.test(f.name) && !/sample|trailer/i.test(f.name));
+      vids.sort((a, b) => (+b.size || 0) - (+a.size || 0));
+      const f = vids.find(v => (+v.size || 0) < 4e9) || vids[0];
+      if (!f) throw new Error("у этого фильма нет видео в формате MP4");
+      return { src: `https://archive.org/download/${encodeURIComponent(id)}/${f.name.split("/").map(encodeURIComponent).join("/")}`,
+               title: j.metadata?.title || id, year: j.metadata?.year || "", lang: [].concat(j.metadata?.language || [])[0] || "" };
+    }
   };
 
   const Archive = {
@@ -644,6 +734,13 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         ${showInstall() ? `<div class="install" id="installTip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
           <div><b>Установите Тембр на iPhone</b>Нажмите «Поделиться» внизу Safari, затем «На экран Домой». Приложение откроется на весь экран и будет играть при заблокированном экране.</div>
           <button data-hide-install aria-label="Скрыть">×</button></div>` : ""}
+        <div class="tiles">
+          <button class="tile" data-go="tv"><svg><use href="#i-tv"/></svg><b>Телеканалы</b></button>
+          <button class="tile" data-go="films"><svg><use href="#i-film"/></svg><b>Кино</b></button>
+          <button class="tile" data-go="tatar"><svg><use href="#i-note"/></svg><b>Народы</b></button>
+          <button class="tile" data-go="lossless"><svg><use href="#i-wave"/></svg><b>Без потерь</b></button>
+          <button class="tile" data-go="fav"><svg><use href="#i-heart"/></svg><b>Любимое</b></button>
+        </div>
         ${S.history.length ? `<section class="sec"><div class="sec-head"><h2>Недавно играло</h2></div>${trackRows(S.history.slice(0,5), "hist", false)}</section>` : ""}
         <section class="sec">
           <div class="sec-head"><h2>В чарте</h2></div>
@@ -731,6 +828,57 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
           .catch(e => { if (my === tok) $("#rList").innerHTML = errBox(e); });
       };
       let t; $("#rq").addEventListener("input", e => { S.rq = e.target.value.trim(); clearTimeout(t); t = setTimeout(run, 450); });
+      run();
+    }
+
+    else if (S.view === "tv"){
+      const C = CHANNELS[S.chan] || CHANNELS.ru;
+      page.innerHTML = `
+        <div class="sec"><span class="tag">Прямой эфир · открытый каталог iptv-org</span><h1>Телеканалы</h1>
+          <p class="lead">Бесплатные телеканалы, которые сами вещают в интернет. Некоторые включаются не круглосуточно или временно не работают: тогда просто выберите другой.</p></div>
+        <div class="seg" role="group" aria-label="Страна или тема">${Object.entries(CHANNELS).map(([k, c]) => `<button data-chan="${k}" aria-pressed="${k === (S.chan || "ru")}">${c.nav}</button>`).join("")}</div>
+        <label class="search">${icon("i-search")}<input id="cq" type="search" placeholder="Название канала" value="${esc(S.cq || "")}" autocomplete="off"></label>
+        <section id="tvList">${skelCards(12, "tvgrid")}</section>`;
+      const draw = list => {
+        const q = (S.cq || "").toLowerCase();
+        const items = list.filter(c => !q || c.title.toLowerCase().includes(q)).slice(0, 120);
+        S.lists.tv = items;
+        $("#tvList").innerHTML = items.length ? `<div class="tvgrid">${items.map((c, i) => `
+          <button class="tv" data-tv="${i}">
+            <div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
+            <b>${esc(c.title)}</b><span>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
+          </button>`).join("")}</div>` : `<div class="status">Каналов не нашлось.</div>`;
+      };
+      C.load().then(list => { if (my !== tok) return; S.tvAll = list; draw(list); })
+        .catch(e => { if (my === tok) $("#tvList").innerHTML = errBox(e); });
+      $("#cq").addEventListener("input", e => { S.cq = e.target.value.trim(); if (S.tvAll) draw(S.tvAll); });
+    }
+
+    else if (S.view === "films"){
+      page.innerHTML = `
+        <div class="sec"><span class="tag">Бесплатно и легально</span><h1>Кино</h1>
+          <p class="lead">Здесь только фильмы, которые можно смотреть бесплатно по закону. Советская классика на русском открывается на официальных сайтах и каналах киностудий. Мировые фильмы из Internet Archive перешли в общественное достояние, поэтому они старые, обычно на английском или немые.</p></div>
+        <div class="sec">
+          <a class="official" href="https://www.mosfilm.ru/cinema/" target="_blank" rel="noopener"><svg><use href="#i-out"/></svg><div><b>Мосфильм · онлайн-кинотеатр</b><span>Официальный сайт студии: сотни советских фильмов бесплатно, в хорошем качестве</span></div></a>
+          <a class="official" href="https://rutube.ru/u/mosfilmofficial/" target="_blank" rel="noopener"><svg><use href="#i-out"/></svg><div><b>Мосфильм на RUTUBE</b><span>Официальный канал студии, фильмы целиком. Работает в России без VPN</span></div></a>
+          <a class="official" href="https://rutube.ru/channel/1792500/" target="_blank" rel="noopener"><svg><use href="#i-out"/></svg><div><b>Ленфильм на RUTUBE</b><span>Официальный канал киностудии «Ленфильм»</span></div></a>
+          <a class="official" href="https://rutube.ru/channel/42946596/" target="_blank" rel="noopener"><svg><use href="#i-out"/></svg><div><b>Мосфильм с тифлокомментариями</b><span>Фильмы с озвучкой для незрячих и слабовидящих</span></div></a>
+        </div>
+        <div class="sec-head"><h2>Мировая классика · Internet Archive</h2></div>
+        <label class="search">${icon("i-search")}<input id="fq" type="search" placeholder="Название, например Chaplin, Nosferatu" value="${esc(S.fq || "")}" autocomplete="off"></label>
+        <section id="fGrid">${skelCards(12)}</section>`;
+      const run = () => {
+        const q = (S.fq || "").replace(/[()":]/g, " ").trim();
+        $("#fGrid").innerHTML = skelCards(12);
+        Films.list(q).then(fs => { if (my !== tok) return;
+            $("#fGrid").innerHTML = fs.length ? `<div class="grid">${fs.map(f => `
+              <button class="card film" data-film="${esc(f.id)}">
+                <div class="frame">${img(Archive.cover(f.id), f.id, f.title)}<span class="pp">${icon("i-play")}</span></div>
+                <div class="t">${esc(f.title)}</div><div class="a">${esc(String(f.year || ""))}</div>
+              </button>`).join("")}</div>` : `<div class="status">Ничего не нашлось${q ? ` по запросу «${esc(q)}»` : ""}.</div>`; })
+          .catch(e => { if (my === tok) $("#fGrid").innerHTML = errBox(e); });
+      };
+      let t; $("#fq").addEventListener("input", e => { S.fq = e.target.value.trim(); clearTimeout(t); t = setTimeout(run, 450); });
       run();
     }
 
@@ -868,7 +1016,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (!$("#sheet").hidden && $("#sheet").dataset.kind === "queue") openQueue();
   }
 
-  audio.addEventListener("play", () => { document.body.classList.add("playing"); np("playicon", u => u.setAttribute("href", "#i-pause")); if (native) try { native.onPlayState(true); } catch {} });
+  audio.addEventListener("play", () => { if (!$("#screen").hidden) closeScreen(); document.body.classList.add("playing"); np("playicon", u => u.setAttribute("href", "#i-pause")); if (native) try { native.onPlayState(true); } catch {} });
   audio.addEventListener("pause", () => { document.body.classList.remove("playing"); np("playicon", u => u.setAttribute("href", "#i-play")); if (native) try { native.onPlayState(false); } catch {} });
   audio.addEventListener("playing", () => { S.fails = 0; });
   audio.addEventListener("ended", () => {
@@ -912,6 +1060,33 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   vol.value = store.get("tembr.vol", 90); audio.volume = vol.value / 100; paint(vol);
   vol.addEventListener("input", () => { audio.volume = vol.value / 100; audio.muted = false; paint(vol); store.set("tembr.vol", +vol.value); });
 
+  /* ---------- video: TV & films ---------- */
+  const video = $("#video"); let hls = null;
+  function loadHlsLib(){
+    if (window.Hls) return Promise.resolve(window.Hls);
+    return new Promise((ok, fail) => { const sc = document.createElement("script"); sc.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"; sc.onload = () => ok(window.Hls); sc.onerror = () => fail(new Error("не загрузился видеоплеер")); document.head.appendChild(sc); });
+  }
+  async function openScreen({ title, sub, src, live }){
+    audio.pause();
+    $("#scTitle").textContent = title; $("#scSub").textContent = sub || ""; $("#scNote").textContent = live ? "Прямой эфир. Если картинка не появилась за 10–15 секунд, канал сейчас не вещает." : "";
+    $("#screen").hidden = false; history.pushState({ screen: 1 }, "");
+    if (hls){ hls.destroy(); hls = null; }
+    const isHls = /\.m3u8(\?|$)/i.test(src);
+    try {
+      if (isHls && !video.canPlayType("application/vnd.apple.mpegurl")){
+        const Hls = await loadHlsLib();
+        if (Hls && Hls.isSupported()){
+          hls = new Hls({ lowLatencyMode: true });
+          hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) $("#scNote").textContent = "Канал сейчас не вещает или закрыт для вашей страны. Выберите другой."; });
+          hls.loadSource(src); hls.attachMedia(video);
+        } else video.src = src;
+      } else video.src = src;
+      await video.play().catch(() => {});
+    } catch (e) { $("#scNote").textContent = "Не удалось открыть: " + e.message; }
+  }
+  function closeScreen(){ video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; }
+  video.addEventListener("error", () => { if (!$("#screen").hidden && video.getAttribute("src")) $("#scNote").textContent = "Видео не открылось. Канал может быть недоступен, выберите другой."; });
+
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
     const sh = $("#sheet"); sh.dataset.kind = kind; sh.innerHTML = html; sh.hidden = false; $("#scrim").hidden = false;
@@ -949,7 +1124,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   }
   function openFull(){ if (!cur()) return; $("#full").hidden = false; history.pushState({ full: 1 }, ""); }
   function closeFull(){ $("#full").hidden = true; }
-  window.addEventListener("popstate", () => { if (!$("#sheet").hidden) closeSheet(); else if (!$("#full").hidden) closeFull(); });
+  window.addEventListener("popstate", () => { if (!$("#screen").hidden) { closeScreen(); return; } if (!$("#sheet").hidden) closeSheet(); else if (!$("#full").hidden) closeFull(); });
 
   document.addEventListener("click", e => {
     const el = e.target.closest("button, .row, [data-open-full]");
@@ -964,6 +1139,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (d.hideInstall !== undefined){ store.set("tembr.hideInstall", true); $("#installTip")?.remove(); return; }
     if (d.view || d.go){ go(d.view || d.go); return; }
     if (d.album){ S.prevView = S.view.startsWith("album:") ? S.prevView : S.view; S.view = "album:" + d.album; render(); return; }
+    if (d.closeScreen !== undefined){ history.back(); closeScreen(); return; }
+    if (d.chan){ S.chan = d.chan; S.cq = ""; S.tvAll = null; render(); return; }
+    if (d.tv !== undefined){ const c = S.lists.tv?.[+d.tv]; if (c) openScreen({ title: c.title, sub: c.group, src: c.url, live: true }); return; }
+    if (d.film){ const id = d.film; toast("Открываю фильм…"); Films.file(id).then(f => openScreen({ title: f.title, sub: [f.year, f.lang].filter(Boolean).join(" · "), src: f.src })).catch(e => toast("Не удалось открыть: " + e.message)); return; }
     if (d.station){ S.station = d.station; S.rq = ""; render(); return; }
     if (d.region){ S.region = d.region; S.tq = ""; render(); return; }
     if (d.genre !== undefined){ S.genre = d.genre; render(); return; }
@@ -996,7 +1175,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (e.code === "Space"){ e.preventDefault(); toggle(); }
     if (e.key === "ArrowRight" && audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
     if (e.key === "ArrowLeft") audio.currentTime = Math.max(0, audio.currentTime - 10);
-    if (e.key === "Escape"){ closeSheet(); closeFull(); }
+    if (e.key === "Escape"){ if (!$("#screen").hidden) closeScreen(); closeSheet(); closeFull(); }
   });
 
   if ("mediaSession" in navigator){
@@ -1010,7 +1189,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 
   // команды из Android-уведомления
   window.tembr = { cmd(a){ if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
-                   back(){ if (!$("#sheet").hidden){ closeSheet(); return true; } if (!$("#full").hidden){ closeFull(); return true; } if (S.view !== "home"){ go(S.view.startsWith("album:") ? S.prevView : "home"); return true; } return false; } };
+                   back(){ if (!$("#screen").hidden){ closeScreen(); return true; } if (!$("#sheet").hidden){ closeSheet(); return true; } if (!$("#full").hidden){ closeFull(); return true; } if (S.view !== "home"){ go(S.view.startsWith("album:") ? S.prevView : "home"); return true; } return false; } };
 
   // офлайн-оболочка для установленного приложения (iPhone / Android через браузер)
   if ("serviceWorker" in navigator && location.protocol === "https:" && location.hostname !== "appassets.androidplatform.net"){
