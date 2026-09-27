@@ -306,7 +306,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     <nav class="nav" aria-label="Разделы">
       <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg><span class="nav-label">Главная</span></button>
       <button data-view="lossless"><svg><use href="#i-wave"/></svg><span class="nav-label">Без потерь</span></button>
-      <button data-view="tatar"><svg><use href="#i-note"/></svg><span class="nav-label">Татарча</span></button>
+      <button data-view="tatar"><svg><use href="#i-note"/></svg><span class="nav-label">Народы</span></button>
       <button data-view="search"><svg><use href="#i-search"/></svg><span class="nav-label">Поиск</span></button>
       <button data-view="fav"><svg><use href="#i-heart"/></svg><span class="nav-label">Любимое</span></button>
     </nav>
@@ -353,7 +353,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   <nav class="tabs" aria-label="Разделы">
     <button data-view="home" aria-current="page"><svg><use href="#i-home"/></svg>Главная</button>
     <button data-view="lossless"><svg><use href="#i-wave"/></svg>Lossless</button>
-    <button data-view="tatar"><svg><use href="#i-note"/></svg>Татарча</button>
+    <button data-view="tatar"><svg><use href="#i-note"/></svg>Народы</button>
     <button data-view="search"><svg><use href="#i-search"/></svg>Поиск</button>
     <button data-view="fav"><svg><use href="#i-heart"/></svg>Любимое</button>
   </nav>
@@ -504,7 +504,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 
   /* ---------- state ---------- */
   const S = {
-    view: "home", prevView: "home", genre: "", searchQ: "", searchSrc: "all", llq: "",
+    view: "home", prevView: "home", region: "tatar", genre: "", searchQ: "", searchSrc: "all", llq: "",
     favs: store.get("tembr.favs", []), history: store.get("tembr.history", []),
     queue: [], order: [], pos: -1, qi: -1, shuffle: false, repeat: "off",
     lists: {}, srcIdx: 0, fails: 0, sleepAt: 0, sleepEnd: false
@@ -553,6 +553,24 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     : `<div class="status err">Не удалось загрузить (${esc(e.message)}). Проверьте интернет и откройте раздел ещё раз.</div>`;
 
   const TATAR_Q = '(title:(татар OR татарская OR татарские OR татарча OR "татар җырлары" OR tatar) OR subject:(tatar OR татар OR татарская OR "tatar music" OR "tatar folk" OR "kirim tatar") OR creator:(Рахманкулова OR Rakhmankulova OR Фәтхетдинов OR Сафиуллин OR Хәйруллина OR Тимерҗанова OR "Мунча Ташы")) AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun OR newscast OR episode)';
+  const EXCL = ' AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun OR newscast OR episode OR mix OR "en iyi" OR listesi OR "şarkıları" OR "sarkilari" OR "yeni" OR "hit")';
+  const REGIONS = {
+    tatar: { nav: "Татарча", title: "Татар җырлары", tag: "Татарская музыка",
+      lead: "Народные песни, граммофонные пластинки и архивные кассеты из Internet Archive, а также треки, которые артисты сами выложили на Audius.",
+      ph: "Исполнитель или песня, например халык җыры",
+      audius: ["tatar music", "татарча"],
+      archive: TATAR_Q + EXCL },
+    bashkir: { nav: "Башҡортса", title: "Башҡорт йырҙары", tag: "Башкирская музыка",
+      lead: "Курай, народные песни и архивные записи Башкортостана из Internet Archive, а также треки независимых артистов на Audius.",
+      ph: "Исполнитель или песня, например курай",
+      audius: ["bashkir", "башкорт"],
+      archive: '(title:(башкир OR башкирские OR башкирская OR башҡорт OR башкорт OR bashkir OR курай) OR subject:(bashkir OR башкирская OR башкирские OR башҡорт OR курай OR "bashkir folk") OR creator:(Гафаров OR Бикбулатов)) AND NOT title:(bible OR "kurai ondrum" OR "kurai nagar" OR Nepali OR Hungaria)' + EXCL },
+    turkish: { nav: "Türkçe", title: "Türk müziği", tag: "Турецкая музыка",
+      lead: "Турецкие народные песни (türkü), классическая музыка и старые пластинки до 2000 года из Internet Archive, а также современные независимые артисты на Audius.",
+      ph: "Sanatçı veya şarkı, например türkü, saz",
+      audius: ["türkçe", "türkü"],
+      archive: '(subject:("turkish music" OR "turkish folk" OR "türk halk müziği" OR türkü OR "türk sanat müziği" OR "ottoman music" OR "osmanlı") OR title:(türkü OR "türk halk" OR "türk sanat" OR "turkish folk" OR "ottoman")) AND (collection:(78rpm OR georgeblood OR audio_music OR opensource_audio OR folksoundomy) OR date:[1900-01-01 TO 1999-12-31])' + EXCL }
+  };
   const GENRES = [["","Все жанры"],["Electronic","Электроника"],["Hip-Hop/Rap","Хип-хоп"],["Pop","Поп"],["Rock","Рок"],["R&B/Soul","R&B"],["Lo-Fi","Lo-Fi"],["House","Хаус"],["Techno","Техно"],["Jazz","Джаз"],["Ambient","Эмбиент"],["Classical","Классика"]];
 
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -588,7 +606,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
           <div id="trend">${skelRows(8)}</div>
         </section>
         <section class="sec">
-          <div class="sec-head"><h2>Татар җырлары</h2><button class="link" data-go="tatar">Все →</button></div>
+          <div class="sec-head"><h2>Татар җырлары</h2><button class="link" data-go="tatar" data-region="tatar">Все →</button></div>
           <div id="tatTeaser">${skelCards(6, "rail")}</div>
         </section>
         <section class="sec">
@@ -597,7 +615,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         </section>`;
       Audius.trending(S.genre).then(ts => { if (my === tok) $("#trend").innerHTML = ts.length ? trackRows(ts, "trend") : `<div class="status">В этом жанре пока пусто.</div>`; })
         .catch(e => { if (my === tok) $("#trend").innerHTML = errBox(e); });
-      Archive.audio(TATAR_Q, 12).then(as => { if (my === tok) $("#tatTeaser").innerHTML = as.length ? albumCards(as, "rail") : `<div class="status">Пока ничего не нашлось.</div>`; })
+      Archive.audio(REGIONS.tatar.archive, 12).then(as => { if (my === tok) $("#tatTeaser").innerHTML = as.length ? albumCards(as, "rail") : `<div class="status">Пока ничего не нашлось.</div>`; })
         .catch(e => { if (my === tok) $("#tatTeaser").innerHTML = errBox(e); });
       Archive.albums("").then(as => { if (my === tok) $("#llTeaser").innerHTML = albumCards(as.slice(0, 12), "rail"); })
         .catch(e => { if (my === tok) $("#llTeaser").innerHTML = errBox(e); });
@@ -618,20 +636,28 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
       run();
     }
 
-    else if (S.view === "tatar"){
+    else if (S.view === "tatar" || S.view === "world"){
+      const R = REGIONS[S.region] || REGIONS.tatar;
       page.innerHTML = `
-        <div class="sec"><span class="tag">Internet Archive · кассеты, пластинки, фольклор</span><h1>Татар җырлары</h1>
-          <p class="lead">Татарская эстрада 90-х с кассет, народные песни и старые граммофонные записи из открытого архива. Можно искать по исполнителю или названию.</p></div>
-        <label class="search">${icon("i-search")}<input id="tq" type="search" placeholder="Например: Салават, Зиннур Сафиуллин, халык җыры" value="${esc(S.tq || "")}" autocomplete="off"></label>
-        <section id="tGrid">${skelCards(12)}</section>`;
+        <div class="sec"><span class="tag">${R.tag}</span><h1>${R.title}</h1><p class="lead">${R.lead}</p></div>
+        <div class="seg" role="group" aria-label="Музыка народов">${Object.entries(REGIONS).map(([k, r]) => `<button data-region="${k}" aria-pressed="${k === S.region}">${r.nav}</button>`).join("")}</div>
+        <label class="search">${icon("i-search")}<input id="tq" type="search" placeholder="${R.ph}" value="${esc(S.tq || "")}" autocomplete="off"></label>
+        <section class="sec" id="wAu"><div class="sec-head"><h2>Треки артистов · Audius</h2></div>${skelRows(5)}</section>
+        <section class="sec" id="wAr"><div class="sec-head"><h2>Архив: фольклор и старые записи</h2></div>${skelCards(8)}</section>`;
+      const head = h => `<div class="sec-head"><h2>${h}</h2></div>`;
       const run = () => {
-        const q = (S.tq || "").replace(/[()"]/g, " ").trim();
-        const query = q ? `(${q}) AND ${TATAR_Q}` : TATAR_Q;
-        $("#tGrid").innerHTML = skelCards(12);
+        const q = (S.tq || "").replace(/[()":]/g, " ").trim();
+        $("#wAu").innerHTML = head("Треки артистов · Audius") + skelRows(5);
+        $("#wAr").innerHTML = head("Архив: фольклор и старые записи") + skelCards(8);
+        const qs = q ? [q + " " + R.audius[0], q] : R.audius;
+        Promise.all(qs.map(x => Audius.search(x).catch(e => { if (e.geo) throw e; return []; })))
+          .then(ls => { if (my !== tok) return; const seen = new Set(), ts = ls.flat().filter(t => !seen.has(t.id) && seen.add(t.id)).slice(0, 30);
+            $("#wAu").innerHTML = head("Треки артистов · Audius") + (ts.length ? trackRows(ts, "wAu") : `<div class="status">На Audius ничего не нашлось.</div>`); })
+          .catch(e => { if (my === tok) $("#wAu").innerHTML = head("Треки артистов · Audius") + errBox(e); });
+        const query = q ? `(${q}) AND ${R.archive}` : R.archive;
         Archive.audio(query, 60).then(as => { if (my !== tok) return;
-            if (!as.length && q) return Archive.audio(`(${q})`, 36).then(bs => { if (my === tok) $("#tGrid").innerHTML = bs.length ? albumCards(bs) : `<div class="status">Ничего не нашлось по запросу «${esc(q)}».</div>`; });
-            $("#tGrid").innerHTML = as.length ? albumCards(as) : `<div class="status">Ничего не нашлось.</div>`; })
-          .catch(e => { if (my === tok) $("#tGrid").innerHTML = errBox(e); });
+            $("#wAr").innerHTML = head("Архив: фольклор и старые записи") + (as.length ? albumCards(as) : `<div class="status">В архиве ничего не нашлось${q ? ` по запросу «${esc(q)}»` : ""}.</div>`); })
+          .catch(e => { if (my === tok) $("#wAr").innerHTML = head("Архив: фольклор и старые записи") + errBox(e); });
       };
       let t; $("#tq").addEventListener("input", e => { S.tq = e.target.value.trim(); clearTimeout(t); t = setTimeout(run, 450); });
       run();
@@ -864,6 +890,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (d.hideInstall !== undefined){ store.set("tembr.hideInstall", true); $("#installTip")?.remove(); return; }
     if (d.view || d.go){ go(d.view || d.go); return; }
     if (d.album){ S.prevView = S.view.startsWith("album:") ? S.prevView : S.view; S.view = "album:" + d.album; render(); return; }
+    if (d.region){ S.region = d.region; S.tq = ""; render(); return; }
     if (d.genre !== undefined){ S.genre = d.genre; render(); return; }
     if (d.src){ S.searchSrc = d.src; $$("[data-src]").forEach(b => b.setAttribute("aria-pressed", b === el)); runSearch(); return; }
     if (d.playall){ setQueue(S.lists[d.playall], 0); return; }
