@@ -563,6 +563,19 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
       TV.cache[path] = res; return res;
     }
   };
+  // поиск каналов: понимает кириллицу и латиницу ("ТНВ" найдёт "TNV-Tatarstan", "Россия 1" найдёт "Rossiya 1")
+  const TR = {а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"j",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"c",ч:"ch",ш:"sh",щ:"sh",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya",ә:"a",ө:"o",ү:"u",җ:"zh",ң:"n",һ:"h",ҙ:"z",ҫ:"s",ҡ:"k",ғ:"g",ğ:"g",ş:"sh",ı:"i",ç:"ch",ö:"o",ü:"u"};
+  const skel = str => String(str || "").toLowerCase().replace(/[^\s]/g, ch => TR[ch] ?? ch)
+      .replace(/kh/g, "h").replace(/ts|tz/g, "c").replace(/[wq]/g, m => m === "w" ? "v" : "k").replace(/x/g, "ks")
+      .replace(/[^a-z0-9]/g, "").replace(/[aeiouyj]/g, "");
+  const tvMatch = (c, q) => {
+    if (!q) return true;
+    const t = (c.title + " " + (c.group || "")).toLowerCase();
+    if (t.includes(q.toLowerCase())) return true;
+    const sq = skel(q); return sq.length >= 2 && skel(c.title).includes(sq);
+  };
+  TV.all = async () => { const list = await TV.list("index.m3u"); return list; };
+
   const CHANNELS = {
     ru:    { nav: "Россия",       load: () => TV.list("countries/ru.m3u") },
     tat:   { nav: "Татарстан",    load: async () => { const [a, b] = await Promise.all([TV.list("languages/tat.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /татар|tatar|тнв|tnv|казан|kazan|huzur|хузур/i.test(c.name))]; } },
@@ -837,11 +850,11 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         <div class="sec"><span class="tag">Прямой эфир · открытый каталог iptv-org</span><h1>Телеканалы</h1>
           <p class="lead">Бесплатные телеканалы, которые сами вещают в интернет. Некоторые включаются не круглосуточно или временно не работают: тогда просто выберите другой.</p></div>
         <div class="seg" role="group" aria-label="Страна или тема">${Object.entries(CHANNELS).map(([k, c]) => `<button data-chan="${k}" aria-pressed="${k === (S.chan || "ru")}">${c.nav}</button>`).join("")}</div>
-        <label class="search">${icon("i-search")}<input id="cq" type="search" placeholder="Название канала" value="${esc(S.cq || "")}" autocomplete="off"></label>
+        <label class="search">${icon("i-search")}<input id="cq" type="search" placeholder="Любой канал мира, например ТНВ, Россия 1, TRT" value="${esc(S.cq || "")}" autocomplete="off"></label>
         <section id="tvList">${skelCards(12, "tvgrid")}</section>`;
       const draw = list => {
-        const q = (S.cq || "").toLowerCase();
-        const items = list.filter(c => !q || c.title.toLowerCase().includes(q)).slice(0, 120);
+        const q = (S.cq || "").trim();
+        const items = list.filter(c => tvMatch(c, q)).slice(0, 150);
         S.lists.tv = items;
         $("#tvList").innerHTML = items.length ? `<div class="tvgrid">${items.map((c, i) => `
           <button class="tv" data-tv="${i}">
@@ -851,7 +864,19 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
       };
       C.load().then(list => { if (my !== tok) return; const seen = new Set(); list = list.filter(c => { const k = c.title.replace(/\s*\(.*$/, "").toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); S.tvAll = list; draw(list); })
         .catch(e => { if (my === tok) $("#tvList").innerHTML = errBox(e); });
-      $("#cq").addEventListener("input", e => { S.cq = e.target.value.trim(); if (S.tvAll) draw(S.tvAll); });
+      let ct;
+      const search = () => {
+        const q = S.cq;
+        if (!q){ if (S.tvAll) draw(S.tvAll); return; }
+        $("#tvList").innerHTML = `<div class="status">Ищу «${esc(q)}» среди всех каналов мира…</div>`;
+        TV.all().then(all => { if (my !== tok || S.cq !== q) return;
+            const seen = new Set(); const merged = [...(S.tvAll || []), ...all].filter(c => { const k = c.url; if (seen.has(k)) return false; seen.add(k); return true; });
+            draw(merged);
+            if (!S.lists.tv.length) $("#tvList").innerHTML = `<div class="status">Канал «${esc(q)}» не нашёлся. Возможно, он не вещает открыто в интернет.</div>`; })
+          .catch(e => { if (my === tok) $("#tvList").innerHTML = errBox(e); });
+      };
+      $("#cq").addEventListener("input", e => { S.cq = e.target.value.trim(); clearTimeout(ct); ct = setTimeout(search, 350); });
+      if (S.cq) search();
     }
 
     else if (S.view === "films"){
@@ -931,16 +956,23 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   function runSearch(){
     const my = tok, box = $("#sres"); if (!box) return;
     const q = S.searchQ;
-    if (!q){ box.innerHTML = `<div class="status">Введите запрос. Ищу в Audius, в FLAC-концертах и в записях Internet Archive, в том числе татарских.</div>`; return; }
+    if (!q){ box.innerHTML = `<div class="status">Введите запрос. Ищу треки, FLAC-концерты, записи Internet Archive и телеканалы.</div>`; return; }
     const au = S.searchSrc === "all" || S.searchSrc === "au", ia = S.searchSrc === "all" || S.searchSrc === "ia", ar = S.searchSrc === "all" || S.searchSrc === "ar";
     box.innerHTML = (au ? `<section class="sec" id="rAu"><div class="sec-head"><h2>Треки</h2></div>${skelRows(6)}</section>` : "") +
                     (ia ? `<section class="sec" id="rIa"><div class="sec-head"><h2>FLAC-концерты</h2></div>${skelCards(4)}</section>` : "") +
+                    `<section class="sec" id="rTv"><div class="sec-head"><h2>Телеканалы</h2></div>${skelCards(4, "tvgrid")}</section>` +
                     (ar ? `<section class="sec" id="rAr"><div class="sec-head"><h2>Записи в архиве</h2></div>${skelCards(4)}</section>` : "");
     const head = h => `<div class="sec-head"><h2>${h}</h2></div>`;
     if (au) Audius.search(q).then(ts => { if (my !== tok || S.searchQ !== q) return; $("#rAu").innerHTML = head("Треки") + (ts.length ? trackRows(ts, "sAu") : `<div class="status">Треков не нашлось.</div>`); })
       .catch(e => { const b = $("#rAu"); if (b) b.innerHTML = head("Треки") + errBox(e); });
     if (ia) Archive.albums(q).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rIa").innerHTML = head("FLAC-концерты") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">Концертов не нашлось.</div>`); })
       .catch(e => { const b = $("#rIa"); if (b) b.innerHTML = head("FLAC-концерты") + errBox(e); });
+    TV.all().then(all => { if (my !== tok || S.searchQ !== q) return;
+        const items = all.filter(c => tvMatch(c, q)).slice(0, 12); S.lists.tv = items;
+        $("#rTv").innerHTML = head("Телеканалы") + (items.length ? `<div class="tvgrid">${items.map((c, i) => `
+          <button class="tv" data-tv="${i}"><div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
+          <b>${esc(c.title)}</b><span>${esc(c.group || "")}</span></button>`).join("")}</div>` : `<div class="status">Телеканалов не нашлось.</div>`); })
+      .catch(() => { const b = $("#rTv"); if (b) b.innerHTML = head("Телеканалы") + `<div class="status">Каналы не загрузились.</div>`; });
     const safe = q.replace(/[()":]/g, " ").trim();
     if (ar) Archive.audio(`(${safe})`, 24).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rAr").innerHTML = head("Записи в архиве") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">В архиве ничего не нашлось.</div>`); })
       .catch(e => { const b = $("#rAr"); if (b) b.innerHTML = head("Записи в архиве") + errBox(e); });
