@@ -849,7 +849,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
             <b>${esc(c.title)}</b><span>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
           </button>`).join("")}</div>` : `<div class="status">Каналов не нашлось.</div>`;
       };
-      C.load().then(list => { if (my !== tok) return; S.tvAll = list; draw(list); })
+      C.load().then(list => { if (my !== tok) return; const seen = new Set(); list = list.filter(c => { const k = c.title.replace(/\s*\(.*$/, "").toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); S.tvAll = list; draw(list); })
         .catch(e => { if (my === tok) $("#tvList").innerHTML = errBox(e); });
       $("#cq").addEventListener("input", e => { S.cq = e.target.value.trim(); if (S.tvAll) draw(S.tvAll); });
     }
