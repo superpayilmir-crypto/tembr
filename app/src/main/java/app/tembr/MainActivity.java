@@ -51,7 +51,27 @@ public class MainActivity extends Activity {
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         s.setUserAgentString(s.getUserAgentString() + " TembrAndroid/1.0");
 
-        web.setWebChromeClient(new WebChromeClient());
+        web.setWebChromeClient(new WebChromeClient() {
+            private View full;
+            private CustomViewCallback cb;
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                if (full != null) { callback.onCustomViewHidden(); return; }
+                full = view; cb = callback;
+                ((android.widget.FrameLayout) getWindow().getDecorView()).addView(view,
+                        new android.widget.FrameLayout.LayoutParams(-1, -1));
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            }
+            @Override
+            public void onHideCustomView() {
+                if (full == null) return;
+                ((android.widget.FrameLayout) getWindow().getDecorView()).removeView(full);
+                full = null;
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+                if (cb != null) cb.onCustomViewHidden();
+            }
+        });
         web.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {

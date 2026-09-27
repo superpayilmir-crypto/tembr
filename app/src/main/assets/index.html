@@ -228,7 +228,17 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .screen-top{display:flex;align-items:center;gap:10px;padding:0 12px 10px}
 .screen-top .ti{flex:1}
 .screen video{flex:1;width:100%;min-height:0;background:#000;object-fit:contain}
-.screen-note{padding:10px 16px;color:var(--ash);font-size:13px}
+.screen-note{padding:12px 16px;color:var(--ash);font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.screen-note .btn{height:38px;padding:0 14px;font-size:13px}
+.screen-wrap{flex:1;min-height:0;position:relative;display:flex;background:#000}
+.screen-wrap video{flex:1;width:100%;height:100%;min-height:200px}
+.spin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.spin i{width:42px;height:42px;border-radius:50%;border:3px solid rgba(243,179,91,.25);border-top-color:var(--edison);animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.tv .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--smoke);margin-right:6px;vertical-align:1px}
+.tv[data-health="ok"] .dot{background:#6cc58a}
+.tv[data-health="off"]{opacity:.45}
+.tv[data-health="off"] .dot{background:#c9573a}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--rivet);background:var(--iron);text-align:left}
 .tile:hover{border-color:var(--edison)}
@@ -430,7 +440,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     <div class="ti"><b id="scTitle"></b><span id="scSub"></span></div>
     <button class="ib" data-close-screen title="Закрыть"><svg><use href="#i-close"/></svg></button>
   </div>
-  <video id="video" controls playsinline preload="metadata"></video>
+  <div class="screen-wrap"><video id="video" controls playsinline webkit-playsinline preload="auto"></video><div class="spin" id="scSpin" hidden><i></i></div></div>
   <div class="screen-note" id="scNote"></div>
 </section>
 <div class="toast" id="toast" hidden></div>
@@ -554,7 +564,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         if (ln.startsWith("#EXTINF")){
           const attr = k => (ln.match(new RegExp(k + '="([^"]*)"')) || [])[1] || "";
           cur = { name: ln.slice(ln.lastIndexOf(",") + 1).trim(), logo: attr("tvg-logo"), group: attr("group-title") };
-        } else if (cur && ln && !ln.startsWith("#")){ cur.url = ln.trim(); out.push(cur); cur = null; }
+        } else if (cur && /^#EXTVLCOPT|^#KODIPROP/.test(ln)){ cur.opt = true; }
+        else if (cur && ln && !ln.startsWith("#")){ cur.url = ln.trim(); if (!cur.opt) out.push(cur); cur = null; }
       }
       const seen = new Set();
       const res = out.filter(c => (native || c.url.startsWith("https:")) && !/geo-blocked/i.test(c.name))
@@ -863,10 +874,11 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         const q = (S.cq || "").trim();
         const items = tvSort(list, q).slice(0, 150);
         S.lists.tv = items;
+        checkHealth(items);
         $("#tvList").innerHTML = items.length ? `<div class="tvgrid">${items.map((c, i) => `
-          <button class="tv" data-tv="${i}">
+          <button class="tv" data-tv="${i}" data-health="${TV.health[c.url] || ""}">
             <div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
-            <b>${esc(c.title)}</b><span>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
+            <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
           </button>`).join("")}</div>` : `<div class="status">Каналов не нашлось.</div>`;
       };
       setTimeout(() => TV.all().catch(() => {}), 1500);   // заранее подгружаем каталог всех каналов для поиска
@@ -1106,26 +1118,93 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (window.Hls) return Promise.resolve(window.Hls);
     return new Promise((ok, fail) => { const sc = document.createElement("script"); sc.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"; sc.onload = () => ok(window.Hls); sc.onerror = () => fail(new Error("не загрузился видеоплеер")); document.head.appendChild(sc); });
   }
-  async function openScreen({ title, sub, src, live }){
-    audio.pause();
-    $("#scTitle").textContent = title; $("#scSub").textContent = sub || ""; $("#scNote").textContent = live ? "Прямой эфир. Если картинка не появилась за 10–15 секунд, канал сейчас не вещает." : "";
-    $("#screen").hidden = false; history.pushState({ screen: 1 }, "");
-    if (hls){ hls.destroy(); hls = null; }
-    const isHls = /\.m3u8(\?|$)/i.test(src);
+  // проверка, вещает ли канал: читаем плейлист; если сервер закрыт для чтения из браузера, считаем «не проверен»
+  TV.health = {};
+  async function probe(url){
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 7000);
     try {
-      if (isHls && !video.canPlayType("application/vnd.apple.mpegurl")){
-        const Hls = await loadHlsLib();
-        if (Hls && Hls.isSupported()){
-          hls = new Hls({ lowLatencyMode: true });
-          hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) $("#scNote").textContent = "Канал сейчас не вещает или закрыт для вашей страны. Выберите другой."; });
-          hls.loadSource(src); hls.attachMedia(video);
-        } else video.src = src;
-      } else video.src = src;
-      await video.play().catch(() => {});
-    } catch (e) { $("#scNote").textContent = "Не удалось открыть: " + e.message; }
+      const r = await fetch(url, { signal: ctl.signal });
+      const ok = r.ok && (await r.text()).includes("#EXTM3U");
+      return ok ? "ok" : "off";
+    } catch (e) {
+      if (e.name === "AbortError") return "off";
+      try { await fetch(url, { mode: "no-cors", signal: ctl.signal }); return ""; } catch { return "off"; }
+    } finally { clearTimeout(t); }
   }
-  function closeScreen(){ video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; }
-  video.addEventListener("error", () => { if (!$("#screen").hidden && video.getAttribute("src")) $("#scNote").textContent = "Видео не открылось. Канал может быть недоступен, выберите другой."; });
+  function checkHealth(items){
+    const todo = items.filter(c => !(c.url in TV.health)).slice(0, 60);
+    let i = 0;
+    const worker = async () => {
+      while (i < todo.length){
+        const c = todo[i++]; TV.health[c.url] = await probe(c.url);
+        const idx = (S.lists.tv || []).indexOf(c);
+        const el = idx >= 0 && document.querySelector(`.tv[data-tv="${idx}"]`);
+        if (el) el.dataset.health = TV.health[c.url];
+      }
+    };
+    for (let k = 0; k < 6; k++) worker();
+  }
+
+  let scTimer = null, scToken = 0, scList = null, scIdx = -1, scTries = 0;
+  function scNote(html){ $("#scNote").innerHTML = html; }
+  function scFail(reason){
+    const my = scToken;
+    $("#scSpin").hidden = true;
+    const c = scList && scList[scIdx];
+    if (c) TV.health[c.url] = "off";
+    if (scList && scTries < 4){
+      scTries++;
+      scNote(`${esc(reason)} Включаю следующий канал…`);
+      setTimeout(() => { if (my === scToken) playChannel(scIdx + 1, true); }, 1200);
+    } else {
+      scNote(`${esc(reason)} <button class="btn ghost" data-sc-next>Следующий канал</button>`);
+    }
+  }
+  function playChannel(i, auto){
+    if (!scList || !scList.length) return;
+    scIdx = (i + scList.length) % scList.length;
+    const c = scList[scIdx];
+    if (!auto) scTries = 0;
+    openScreen({ title: c.title, sub: c.group, src: c.url, live: true, keepHistory: auto });
+  }
+  async function openScreen({ title, sub, src, live, keepHistory }){
+    const my = ++scToken;
+    audio.pause();
+    $("#scTitle").textContent = title; $("#scSub").textContent = sub || "";
+    scNote(live ? "Подключаюсь к эфиру…" : "Загружаю фильм…");
+    $("#scSpin").hidden = false;
+    if ($("#screen").hidden){ $("#screen").hidden = false; if (!keepHistory) history.pushState({ screen: 1 }, ""); }
+    if (hls){ hls.destroy(); hls = null; }
+    clearTimeout(scTimer);
+    scTimer = setTimeout(() => { if (my === scToken && (video.paused || video.readyState < 3)) scFail(live ? "Канал не отвечает." : "Фильм долго не загружается."); }, live ? 15000 : 25000);
+    const isHls = /\.m3u8(\?|$)/i.test(src);
+    const native = !!video.canPlayType("application/vnd.apple.mpegurl");
+    const useHlsJs = async () => {
+      const Hls = await loadHlsLib();
+      if (my !== scToken) return;
+      if (!Hls || !Hls.isSupported()) return scFail("Этот браузер не умеет показывать такой поток.");
+      hls = new Hls({ enableWorker: true, lowLatencyMode: false, manifestLoadingMaxRetry: 2, levelLoadingMaxRetry: 2 });
+      hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal && my === scToken) scFail("Канал сейчас не вещает или закрыт для вашей страны."); });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (my === scToken) video.play().catch(() => scNote("Нажмите ▶ на плеере, чтобы включить.")); });
+      hls.loadSource(src); hls.attachMedia(video);
+    };
+    video.onerror = () => {
+      if (my !== scToken || !video.getAttribute("src")) return;
+      if (isHls && !hls && window.Hls !== false){ video.removeAttribute("src"); useHlsJs().catch(e => scFail(e.message)); }
+      else scFail(live ? "Канал сейчас не вещает." : "Видео не открылось.");
+    };
+    try {
+      if (!isHls || native){
+        video.src = src;
+        video.play().catch(err => { if (err.name === "NotAllowedError") { $("#scSpin").hidden = true; scNote("Нажмите ▶ на плеере, чтобы включить."); } });
+      } else await useHlsJs();
+    } catch (e) { scFail("Не удалось открыть: " + e.message); }
+  }
+  video.addEventListener("playing", () => { clearTimeout(scTimer); $("#scSpin").hidden = true; scTries = 0;
+    const c = scList && scList[scIdx]; if (c && c.url === (hls ? hls.url : video.currentSrc) ) TV.health[c.url] = "ok";
+    scNote(scList ? `В эфире. <button class="btn ghost" data-sc-prev>← Предыдущий</button><button class="btn ghost" data-sc-next>Следующий →</button>` : ""); });
+  video.addEventListener("waiting", () => { if (!$("#screen").hidden) $("#scSpin").hidden = false; });
+  function closeScreen(){ ++scToken; clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; }
 
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
@@ -1181,8 +1260,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (d.album){ S.prevView = S.view.startsWith("album:") ? S.prevView : S.view; S.view = "album:" + d.album; render(); return; }
     if (d.closeScreen !== undefined){ history.back(); closeScreen(); return; }
     if (d.chan){ S.chan = d.chan; S.cq = ""; S.tvAll = null; render(); return; }
-    if (d.tv !== undefined){ const c = S.lists.tv?.[+d.tv]; if (c) openScreen({ title: c.title, sub: c.group, src: c.url, live: true }); return; }
-    if (d.film){ const id = d.film; toast("Открываю фильм…"); Films.file(id).then(f => openScreen({ title: f.title, sub: [f.year, f.lang].filter(Boolean).join(" · "), src: f.src })).catch(e => toast("Не удалось открыть: " + e.message)); return; }
+    if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ scList = L.slice(); playChannel(+d.tv, false); } return; }
+    if (d.scNext !== undefined){ scTries = 0; playChannel(scIdx + 1, true); return; }
+    if (d.scPrev !== undefined){ scTries = 0; playChannel(scIdx - 1, true); return; }
+    if (d.film){ const id = d.film; scList = null; toast("Открываю фильм…"); Films.file(id).then(f => openScreen({ title: f.title, sub: [f.year, f.lang].filter(Boolean).join(" · "), src: f.src })).catch(e => toast("Не удалось открыть: " + e.message)); return; }
     if (d.station){ S.station = d.station; S.rq = ""; render(); return; }
     if (d.region){ S.region = d.region; S.tq = ""; render(); return; }
     if (d.genre !== undefined){ S.genre = d.genre; render(); return; }
