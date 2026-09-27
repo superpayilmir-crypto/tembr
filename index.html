@@ -241,6 +241,14 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .tv-sum{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ash);display:flex;gap:16px;flex-wrap:wrap}
 .tv-sum i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .tv[data-health="off"]{opacity:.45}
+.tv{position:relative;cursor:pointer}
+.tv .tvfav{position:absolute;top:6px;right:6px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:rgba(20,19,18,.72);color:var(--bone);z-index:1}
+.tv .tvfav svg{width:18px;height:18px}
+.tv .tvfav[aria-pressed="true"]{color:var(--brick);background:rgba(20,19,18,.85)}
+.seg button.favchip{display:inline-flex;align-items:center;gap:6px}
+.seg button.favchip svg{width:14px;height:14px;color:var(--brick)}
+.seg button.favchip[aria-pressed="true"] svg{color:var(--brick)}
+#scFav[aria-pressed="true"]{color:var(--brick)}
 .tv[data-health="off"] .dot{background:#c9573a}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--rivet);background:var(--iron);text-align:left}
@@ -451,6 +459,7 @@ body.pipmode .screen-wrap video{min-height:0}
 <section class="screen" id="screen" hidden aria-label="Просмотр">
   <div class="screen-top">
     <div class="ti"><b id="scTitle"></b><span id="scSub"></span></div>
+    <button class="ib" data-scfav id="scFav" aria-pressed="false" title="В любимые" hidden><svg><use href="#i-heart" id="scFavIcon"/></svg></button>
     <button class="ib" data-pip id="pipBtn" title="Маленькое окно" hidden><svg><use href="#i-pip"/></svg></button>
     <button class="ib" data-close-screen title="Закрыть"><svg><use href="#i-close"/></svg></button>
   </div>
@@ -560,6 +569,7 @@ body.pipmode .screen-wrap video{min-height:0}
     click(uuid){ Radio.get(`/json/url/${encodeURIComponent(uuid)}`).catch(() => {}); }
   };
   const STATIONS = {
+    fav:     { nav: "Любимые",   fav: true, sets: [] },
     tatar:   { nav: "Татарча",   sets: [{ language: "tatar" }, { tag: "tatar" }, { name: "tatar" }, { name: "татар" }] },
     bashkir: { nav: "Башҡортса", sets: [{ language: "bashkir" }, { tag: "bashkir" }, { name: "башкорт" }, { name: "bashkort" }] },
     turkish: { nav: "Türkçe",    sets: [{ countrycode: "TR" }] },
@@ -608,7 +618,28 @@ body.pipmode .screen-wrap video{min-height:0}
   const tvSort = (list, q) => q ? list.map(c => [tvScore(c, q), c]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).map(x => x[1]) : list;
   TV.all = async () => { const list = await TV.list("index.m3u"); return list; };
 
+  let tvFavs = store.get("tembr.tvFavs", []);
+  const isTvFav = c => !!c && tvFavs.some(x => x.url === c.url);
+  function toggleTvFav(c){
+    if (!c) return;
+    if (isTvFav(c)) tvFavs = tvFavs.filter(x => x.url !== c.url);
+    else tvFavs.unshift({ title: c.title, url: c.url, logo: c.logo, group: c.group, name: c.name, part: c.part });
+    store.set("tembr.tvFavs", tvFavs);
+    const on = isTvFav(c);
+    $$(`.tvfav[data-url="${CSS.escape(c.url)}"]`).forEach(b => { b.setAttribute("aria-pressed", on); b.innerHTML = icon(on ? "i-heart-f" : "i-heart"); });
+    syncScFav();
+    toast(on ? "Канал добавлен в любимые" : "Канал убран из любимых");
+    if (S.view === "tv" && S.chan === "fav") render();
+  }
+  const tvCard = (c, i) => `
+          <div class="tv" data-tv="${i}" data-health="${TV.health[c.url] || ""}" role="button" tabindex="0">
+            <button class="tvfav" data-tvfav="${i}" data-url="${esc(c.url)}" aria-pressed="${isTvFav(c)}" title="В любимые">${icon(isTvFav(c) ? "i-heart-f" : "i-heart")}</button>
+            <div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
+            <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
+          </div>`;
+
   const CHANNELS = {
+    fav:   { nav: "Любимые",      fav: true, load: async () => tvFavs.slice() },
     ru:    { nav: "Россия",       load: () => TV.list("countries/ru.m3u") },
     tat:   { nav: "Татарстан",    load: async () => { const [a, b] = await Promise.all([TV.list("languages/tat.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /татар|tatar|тнв|tnv|казан|kazan|huzur|хузур/i.test(c.name))]; } },
     bak:   { nav: "Башкортостан", load: async () => { const [a, b] = await Promise.all([TV.list("languages/bak.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /башк|bashk|бст|bst|уфа|ufa|тамыр|tamyr/i.test(c.name))]; } },
@@ -698,7 +729,7 @@ body.pipmode .screen-wrap video{min-height:0}
     $$(`[data-fav="${CSS.escape(t.id)}"]`).forEach(b => { const on = isFav(t.id); b.setAttribute("aria-pressed", on); b.innerHTML = icon(on ? "i-heart-f" : "i-heart"); });
     syncFavBtn();
     toast(isFav(t.id) ? "Добавлено в «Любимое»" : "Убрано из «Любимого»");
-    if (S.view === "fav") render();
+    if (S.view === "fav" || (S.view === "radio" && S.station === "fav")) render();
   }
   function pushHistory(t){
     S.history = [t, ...S.history.filter(x => x.id !== t.id)].slice(0, 24);
@@ -861,15 +892,16 @@ body.pipmode .screen-wrap video{min-height:0}
       page.innerHTML = `
         <div class="sec"><span class="tag">Прямой эфир · Radio Browser</span><h1>Радио</h1>
           <p class="lead">Тысячи открытых радиостанций со всего мира. Работают в России без VPN. Станции сами выбирают, что крутить: современные хиты, народную музыку, новости.</p></div>
-        <div class="seg" role="group" aria-label="Страна или язык">${Object.entries(STATIONS).map(([k, r]) => `<button data-station="${k}" aria-pressed="${k === S.station}">${r.nav}</button>`).join("")}</div>
+        <div class="seg" role="group" aria-label="Страна или язык">${Object.entries(STATIONS).map(([k, r]) => { const n = S.favs.filter(t => t.live).length; return `<button data-station="${k}" aria-pressed="${k === S.station}"${r.fav ? ` class="favchip"` : ""}>${r.fav ? icon("i-heart-f") : ""}${r.nav}${r.fav && n ? ` · ${n}` : ""}</button>`; }).join("")}</div>
         <label class="search">${icon("i-search")}<input id="rq" type="search" placeholder="Название станции, например Tatar Radiosy" value="${esc(S.rq || "")}" autocomplete="off"></label>
         <section class="sec" id="rList">${skelRows(10)}</section>`;
       const run = () => {
         const q = (S.rq || "").trim();
         $("#rList").innerHTML = skelRows(10);
-        const job = q ? Radio.many([{ name: q }, { tag: q.toLowerCase() }], 60) : Radio.many(R.sets, 60);
+        const favR = () => Promise.resolve(S.favs.filter(t => t.live && (!q || t.title.toLowerCase().includes(q.toLowerCase()))));
+        const job = R.fav ? favR() : q ? Radio.many([{ name: q }, { tag: q.toLowerCase() }], 60) : Radio.many(R.sets, 60);
         job.then(ts => { if (my !== tok) return;
-            $("#rList").innerHTML = ts.length ? trackRows(ts, "radio") : `<div class="status">Станций не нашлось${q ? ` по запросу «${esc(q)}»` : ""}.</div>`; })
+            $("#rList").innerHTML = ts.length ? trackRows(ts, "radio") : `<div class="status">${R.fav && !q ? "Пока пусто. Нажмите ♡ рядом со станцией или в плеере, и она появится здесь." : `Станций не нашлось${q ? ` по запросу «${esc(q)}»` : ""}.`}</div>`; })
           .catch(e => { if (my === tok) $("#rList").innerHTML = errBox(e); });
       };
       let t; $("#rq").addEventListener("input", e => { S.rq = e.target.value.trim(); clearTimeout(t); t = setTimeout(run, 450); });
@@ -881,7 +913,7 @@ body.pipmode .screen-wrap video{min-height:0}
       page.innerHTML = `
         <div class="sec"><span class="tag">Прямой эфир · открытый каталог iptv-org</span><h1>Телеканалы</h1>
           <p class="lead">Бесплатные телеканалы, которые сами вещают в интернет. Некоторые включаются не круглосуточно или временно не работают: тогда просто выберите другой.</p></div>
-        <div class="seg" role="group" aria-label="Страна или тема">${Object.entries(CHANNELS).map(([k, c]) => `<button data-chan="${k}" aria-pressed="${k === (S.chan || "ru")}">${c.nav}</button>`).join("")}</div>
+        <div class="seg" role="group" aria-label="Страна или тема">${Object.entries(CHANNELS).map(([k, c]) => `<button data-chan="${k}" aria-pressed="${k === (S.chan || "ru")}"${c.fav ? ` class="favchip"` : ""}>${c.fav ? icon("i-heart-f") : ""}${c.nav}${c.fav && tvFavs.length ? ` · ${tvFavs.length}` : ""}</button>`).join("")}</div>
         <label class="search">${icon("i-search")}<input id="cq" type="search" placeholder="Любой канал мира, например ТНВ, Россия 1, TRT" value="${esc(S.cq || "")}" autocomplete="off"></label>
         <section id="tvList">${skelCards(12, "tvgrid")}</section>`;
       const draw = list => {
@@ -892,11 +924,7 @@ body.pipmode .screen-wrap video{min-height:0}
         checkHealth(items);
         const nOk = items.filter(c => TV.health[c.url] === "ok").length, nOff = items.filter(c => TV.health[c.url] === "off").length, nWait = items.filter(c => TV.pending.has(c.url)).length;
         $("#tvList").innerHTML = items.length ? `<div class="tv-sum"><span><i style="background:#5fd07e"></i>в эфире: ${nOk}</span><span><i style="background:var(--smoke)"></i>не проверено: ${items.length - nOk - nOff}${nWait ? " (проверяю…)" : ""}</span><span><i style="background:#c9573a"></i>не отвечают: ${nOff}</span></div>
-          <div class="tvgrid" style="margin-top:12px">${items.map((c, i) => `
-          <button class="tv" data-tv="${i}" data-health="${TV.health[c.url] || ""}">
-            <div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
-            <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
-          </button>`).join("")}</div>` : `<div class="status">Каналов не нашлось.</div>`;
+          <div class="tvgrid" style="margin-top:12px">${items.map(tvCard).join("")}</div>` : `<div class="status">${S.chan === "fav" && !(S.cq || "") ? "Пока пусто. Нажмите ♡ на карточке канала или в плеере, и канал появится здесь." : "Каналов не нашлось."}</div>`;
       };
       setTimeout(() => TV.all().catch(() => {}), 1500);   // заранее подгружаем каталог всех каналов для поиска
       let lastList = null;
@@ -1009,8 +1037,7 @@ body.pipmode .screen-wrap video{min-height:0}
     TV.all().then(all => { if (my !== tok || S.searchQ !== q) return;
         const items = byHealth(tvSort(all, q).slice(0, 12)); S.lists.tv = items;
         $("#rTv").innerHTML = head("Телеканалы") + (items.length ? `<div class="tvgrid">${items.map((c, i) => `
-          <button class="tv" data-tv="${i}" data-health="${TV.health[c.url] || ""}"><div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
-          <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}</span></button>`).join("")}</div>` : `<div class="status">Телеканалов не нашлось.</div>`); })
+${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов не нашлось.</div>`); })
       .catch(() => { const b = $("#rTv"); if (b) b.innerHTML = head("Телеканалы") + `<div class="status">Каналы не загрузились.</div>`; });
     const safe = q.replace(/[()":]/g, " ").trim();
     if (ar) Archive.audio(`(${safe})`, 24).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rAr").innerHTML = head("Записи в архиве") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">В архиве ничего не нашлось.</div>`); })
@@ -1186,12 +1213,21 @@ body.pipmode .screen-wrap video{min-height:0}
       scNote(`${esc(reason)} <button class="btn ghost" data-sc-next>Следующий канал</button>`);
     }
   }
+  function syncScFav(){
+    const c = scList && scList[scIdx], btn = $("#scFav");
+    btn.hidden = !c;
+    if (!c) return;
+    const on = isTvFav(c);
+    btn.setAttribute("aria-pressed", on);
+    $("#scFavIcon").setAttribute("href", on ? "#i-heart-f" : "#i-heart");
+  }
   function playChannel(i, auto){
     if (!scList || !scList.length) return;
     scIdx = (i + scList.length) % scList.length;
     const c = scList[scIdx];
     if (!auto) scTries = 0;
     openScreen({ title: c.title, sub: c.group, src: c.url, live: true, keepHistory: auto });
+    syncScFav();
   }
   async function openScreen({ title, sub, src, live, keepHistory }){
     const my = ++scToken;
@@ -1263,7 +1299,7 @@ body.pipmode .screen-wrap video{min-height:0}
     }
   });
 
-  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; }
+  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; $("#scFav").hidden = true; }
 
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
@@ -1305,7 +1341,7 @@ body.pipmode .screen-wrap video{min-height:0}
   window.addEventListener("popstate", () => { if (!$("#screen").hidden) { if ($("#screen").classList.contains("mini")) return; closeScreen(); return; } if (!$("#sheet").hidden) closeSheet(); else if (!$("#full").hidden) closeFull(); });
 
   document.addEventListener("click", e => {
-    const el = e.target.closest("button, .row, [data-open-full]");
+    const el = e.target.closest("button, .row, .tv, [data-open-full]");
     if (!el) { if (e.target.id === "scrim") closeSheet(); return; }
     const d = el.dataset;
     if (d.fav !== undefined){ e.stopPropagation(); const row = el.closest(".row"); const t = row ? S.lists[row.dataset.list]?.[+row.dataset.i] : null; toggleFav(t || S.favs.find(x => x.id === d.fav)); return; }
@@ -1320,6 +1356,8 @@ body.pipmode .screen-wrap video{min-height:0}
     if (d.pip !== undefined){ if (native && !pipSupported()) toast("Сверните приложение кнопкой «Домой», и видео уйдёт в маленькое окно."); else enterPip(); return; }
     if (d.closeScreen !== undefined){ history.back(); closeScreen(); return; }
     if (d.chan){ S.chan = d.chan; S.cq = ""; S.tvAll = null; render(); return; }
+    if (d.tvfav !== undefined){ e.stopPropagation(); toggleTvFav(S.lists.tv?.[+d.tvfav]); return; }
+    if (d.scfav !== undefined){ toggleTvFav(scList && scList[scIdx]); return; }
     if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ scList = L.slice(); playChannel(+d.tv, false); } return; }
     if (d.scNext !== undefined){ scTries = 0; playChannel(scIdx + 1, true); return; }
     if (d.scPrev !== undefined){ scTries = 0; playChannel(scIdx - 1, true); return; }
@@ -1352,7 +1390,7 @@ body.pipmode .screen-wrap video{min-height:0}
   });
   document.addEventListener("keydown", e => {
     if (e.target.closest("input")) return;
-    if (e.key === "Enter" && e.target.closest(".row")) e.target.closest(".row").click();
+    if (e.key === "Enter" && e.target.closest(".row, .tv")) e.target.closest(".row, .tv").click();
     if (e.code === "Space"){ e.preventDefault(); toggle(); }
     if (e.key === "ArrowRight" && audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
     if (e.key === "ArrowLeft") audio.currentTime = Math.max(0, audio.currentTime - 10);
