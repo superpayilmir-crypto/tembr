@@ -568,12 +568,19 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
   const skel = str => String(str || "").toLowerCase().replace(/[^\s]/g, ch => TR[ch] ?? ch)
       .replace(/kh/g, "h").replace(/ts|tz/g, "c").replace(/[wq]/g, m => m === "w" ? "v" : "k").replace(/x/g, "ks")
       .replace(/[^a-z0-9]/g, "").replace(/[aeiouyj]/g, "");
-  const tvMatch = (c, q) => {
-    if (!q) return true;
-    const t = (c.title + " " + (c.group || "")).toLowerCase();
-    if (t.includes(q.toLowerCase())) return true;
-    const sq = skel(q); return sq.length >= 2 && skel(c.title).includes(sq);
+  const skelW = str => "|" + String(str || "").toLowerCase().split(/[^a-zа-яёәөүҗңһҙҫҡғğşıçöü0-9]+/i).filter(Boolean).map(skel).filter(Boolean).join("|");
+  const ALIAS = { "первый": "channel one", "первыйканал": "channel one", "россия": "russia", "нтв": "ntv", "тнт": "tnt", "стс": "sts", "рен": "ren", "матч": "match", "культура": "kultura", "звезда": "zvezda", "пятница": "pyatnica", "домашний": "domashniy", "карусель": "karusel", "муз": "muz", "мир": "mir" };
+  const tvScore = (c, q) => {
+    if (!q) return 1;
+    const low = q.toLowerCase().trim(), t = c.title.toLowerCase();
+    if (t.startsWith(low)) return 4;
+    if (t.includes(low)) return 3;
+    const cw = skelW(c.title), variants = [low, ALIAS[low.replace(/\s+/g, "")], ALIAS[low.split(/\s+/)[0]]].filter(Boolean);
+    for (const v of variants){ const qw = skelW(v); if (qw.length > 2 && cw.includes(qw)) return cw.startsWith(qw) ? 2.5 : 2; }
+    return 0;
   };
+  const tvMatch = (c, q) => tvScore(c, q) > 0;
+  const tvSort = (list, q) => q ? list.map(c => [tvScore(c, q), c]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).map(x => x[1]) : list;
   TV.all = async () => { const list = await TV.list("index.m3u"); return list; };
 
   const CHANNELS = {
@@ -854,7 +861,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         <section id="tvList">${skelCards(12, "tvgrid")}</section>`;
       const draw = list => {
         const q = (S.cq || "").trim();
-        const items = list.filter(c => tvMatch(c, q)).slice(0, 150);
+        const items = tvSort(list, q).slice(0, 150);
         S.lists.tv = items;
         $("#tvList").innerHTML = items.length ? `<div class="tvgrid">${items.map((c, i) => `
           <button class="tv" data-tv="${i}">
@@ -968,7 +975,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (ia) Archive.albums(q).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rIa").innerHTML = head("FLAC-концерты") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">Концертов не нашлось.</div>`); })
       .catch(e => { const b = $("#rIa"); if (b) b.innerHTML = head("FLAC-концерты") + errBox(e); });
     TV.all().then(all => { if (my !== tok || S.searchQ !== q) return;
-        const items = all.filter(c => tvMatch(c, q)).slice(0, 12); S.lists.tv = items;
+        const items = tvSort(all, q).slice(0, 12); S.lists.tv = items;
         $("#rTv").innerHTML = head("Телеканалы") + (items.length ? `<div class="tvgrid">${items.map((c, i) => `
           <button class="tv" data-tv="${i}"><div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
           <b>${esc(c.title)}</b><span>${esc(c.group || "")}</span></button>`).join("")}</div>` : `<div class="status">Телеканалов не нашлось.</div>`); })
