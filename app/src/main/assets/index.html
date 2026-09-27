@@ -1348,13 +1348,13 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (d.list !== undefined){ setQueue(S.lists[d.list], +d.i); return; }
     if (d.qpos !== undefined){ loadAt(+d.qpos, true); return; }
     if (d.openFull !== undefined){ openFull(); return; }
-    if (d.closeFull !== undefined){ history.back(); closeFull(); return; }
+    if (d.closeFull !== undefined){ if (history.state && history.state.full) history.back(); closeFull(); return; }
     if (d.closeSheet !== undefined){ closeSheet(); return; }
     if (d.hideInstall !== undefined){ store.set("tembr.hideInstall", true); $("#installTip")?.remove(); return; }
     if (d.view || d.go){ go(d.view || d.go); return; }
     if (d.album){ S.prevView = S.view.startsWith("album:") ? S.prevView : S.view; S.view = "album:" + d.album; render(); return; }
     if (d.pip !== undefined){ if (native && !pipSupported()) toast("Сверните приложение кнопкой «Домой», и видео уйдёт в маленькое окно."); else enterPip(); return; }
-    if (d.closeScreen !== undefined){ history.back(); closeScreen(); return; }
+    if (d.closeScreen !== undefined){ if (history.state && history.state.screen) history.back(); closeScreen(); return; }
     if (d.chan){ S.chan = d.chan; S.cq = ""; S.tvAll = null; render(); return; }
     if (d.tvfav !== undefined){ e.stopPropagation(); toggleTvFav(S.lists.tv?.[+d.tvfav]); return; }
     if (d.scfav !== undefined){ toggleTvFav(scList && scList[scIdx]); return; }
