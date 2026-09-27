@@ -440,7 +440,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
       srcs.push(`${AUDIUS}/tracks/${encodeURIComponent(t.id)}/stream?app_name=${APP}`);
       return { id: "au:" + t.id, source: "Audius", title: t.title, artist: t.user?.name || "—",
         cover: a["480x480"] || a["1000x1000"] || a["150x150"] || "", duration: t.duration || 0,
-        src: srcs[0], srcs, quality: "MP3 320", lossless: false, fetchedAt: Date.now() };
+        src: srcs[0], srcs, quality: "MP3 320", lossless: false, fetchedAt: Date.now(),
+        meta: [t.title, t.user?.name, t.user?.handle, t.tags, t.genre, t.mood, t.description].join(" ") };
     },
     ok: t => t && t.is_streamable !== false && !t.stream_conditions && !(t.access && t.access.stream === false),
     async trending(genre){
@@ -553,22 +554,22 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     : `<div class="status err">Не удалось загрузить (${esc(e.message)}). Проверьте интернет и откройте раздел ещё раз.</div>`;
 
   const TATAR_Q = '(title:(татар OR татарская OR татарские OR татарча OR "татар җырлары" OR tatar) OR subject:(tatar OR татар OR татарская OR "tatar music" OR "tatar folk" OR "kirim tatar") OR creator:(Рахманкулова OR Rakhmankulova OR Фәтхетдинов OR Сафиуллин OR Хәйруллина OR Тимерҗанова OR "Мунча Ташы")) AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun OR newscast OR episode)';
-  const EXCL = ' AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun OR newscast OR episode OR mix OR "en iyi" OR listesi OR "şarkıları" OR "sarkilari" OR "yeni" OR "hit")';
+  const EXCL = ' AND NOT title:(Hüseyin OR Bosy OR carpaccio OR evanghelizare OR mounir OR lampun OR newscast OR episode OR civilizations OR civ OR hikayesi OR podcast OR mix OR "en iyi" OR listesi OR "şarkıları" OR "sarkilari" OR "yeni" OR "hit")';
   const REGIONS = {
     tatar: { nav: "Татарча", title: "Татар җырлары", tag: "Татарская музыка",
       lead: "Народные песни, граммофонные пластинки и архивные кассеты из Internet Archive, а также треки, которые артисты сами выложили на Audius.",
       ph: "Исполнитель или песня, например халык җыры",
-      audius: ["tatar music", "татарча"],
+      audius: ["tatar music", "татарча"], match: /tatar|татар|[әөүҗңһ]/i,
       archive: TATAR_Q + EXCL },
     bashkir: { nav: "Башҡортса", title: "Башҡорт йырҙары", tag: "Башкирская музыка",
       lead: "Курай, народные песни и архивные записи Башкортостана из Internet Archive, а также треки независимых артистов на Audius.",
       ph: "Исполнитель или песня, например курай",
-      audius: ["bashkir", "башкорт"],
+      audius: ["bashkir", "башкорт"], match: /bashkir|bashkort|башк[иоі]р|башҡ|[ҙҫҡғ]/i,
       archive: '(title:(башкир OR башкирские OR башкирская OR башҡорт OR башкорт OR bashkir OR курай) OR subject:(bashkir OR башкирская OR башкирские OR башҡорт OR курай OR "bashkir folk") OR creator:(Гафаров OR Бикбулатов)) AND NOT title:(bible OR "kurai ondrum" OR "kurai nagar" OR Nepali OR Hungaria)' + EXCL },
     turkish: { nav: "Türkçe", title: "Türk müziği", tag: "Турецкая музыка",
       lead: "Турецкие народные песни (türkü), классическая музыка и старые пластинки до 2000 года из Internet Archive, а также современные независимые артисты на Audius.",
       ph: "Sanatçı veya şarkı, например türkü, saz",
-      audius: ["türkçe", "türkü"],
+      audius: ["türkçe", "türkü"], match: /türk|turk|[ğşı]/i,
       archive: '(subject:("turkish music" OR "turkish folk" OR "türk halk müziği" OR türkü OR "türk sanat müziği" OR "ottoman music" OR "osmanlı") OR title:(türkü OR "türk halk" OR "türk sanat" OR "turkish folk" OR "ottoman")) AND (collection:(78rpm OR georgeblood OR audio_music OR opensource_audio OR folksoundomy) OR date:[1900-01-01 TO 1999-12-31])' + EXCL }
   };
   const GENRES = [["","Все жанры"],["Electronic","Электроника"],["Hip-Hop/Rap","Хип-хоп"],["Pop","Поп"],["Rock","Рок"],["R&B/Soul","R&B"],["Lo-Fi","Lo-Fi"],["House","Хаус"],["Techno","Техно"],["Jazz","Джаз"],["Ambient","Эмбиент"],["Classical","Классика"]];
@@ -651,7 +652,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         $("#wAr").innerHTML = head("Архив: фольклор и старые записи") + skelCards(8);
         const qs = q ? [q + " " + R.audius[0], q] : R.audius;
         Promise.all(qs.map(x => Audius.search(x).catch(e => { if (e.geo) throw e; return []; })))
-          .then(ls => { if (my !== tok) return; const seen = new Set(), ts = ls.flat().filter(t => !seen.has(t.id) && seen.add(t.id)).slice(0, 30);
+          .then(ls => { if (my !== tok) return; const seen = new Set(), ts = ls.flat().filter(t => !seen.has(t.id) && seen.add(t.id) && (q || R.match.test(t.meta || ""))).slice(0, 30);
             $("#wAu").innerHTML = head("Треки артистов · Audius") + (ts.length ? trackRows(ts, "wAu") : `<div class="status">На Audius ничего не нашлось.</div>`); })
           .catch(e => { if (my === tok) $("#wAu").innerHTML = head("Треки артистов · Audius") + errBox(e); });
         const query = q ? `(${q}) AND ${R.archive}` : R.archive;
