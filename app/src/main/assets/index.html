@@ -869,13 +869,14 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
             <b>${esc(c.title)}</b><span>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
           </button>`).join("")}</div>` : `<div class="status">Каналов не нашлось.</div>`;
       };
+      setTimeout(() => TV.all().catch(() => {}), 1500);   // заранее подгружаем каталог всех каналов для поиска
       C.load().then(list => { if (my !== tok) return; const seen = new Set(); list = list.filter(c => { const k = c.title.replace(/\s*\(.*$/, "").toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); S.tvAll = list; draw(list); })
         .catch(e => { if (my === tok) $("#tvList").innerHTML = errBox(e); });
       let ct;
       const search = () => {
         const q = S.cq;
         if (!q){ if (S.tvAll) draw(S.tvAll); return; }
-        $("#tvList").innerHTML = `<div class="status">Ищу «${esc(q)}» среди всех каналов мира…</div>`;
+        $("#tvList").innerHTML = `<div class="status">Ищу «${esc(q)}» среди 10 000 каналов мира… При первом поиске это занимает несколько секунд.</div>`;
         TV.all().then(all => { if (my !== tok || S.cq !== q) return;
             const seen = new Set(); const merged = [...(S.tvAll || []), ...all].filter(c => { const k = c.url; if (seen.has(k)) return false; seen.add(k); return true; });
             draw(merged);
