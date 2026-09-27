@@ -235,8 +235,11 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .spin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .spin i{width:42px;height:42px;border-radius:50%;border:3px solid rgba(243,179,91,.25);border-top-color:var(--edison);animation:rot 1s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
-.tv .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--smoke);margin-right:6px;vertical-align:1px}
-.tv[data-health="ok"] .dot{background:#6cc58a}
+.tv .dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--smoke);margin-right:7px;vertical-align:-1px;flex:none}
+.tv[data-health="ok"] .dot{background:#5fd07e;box-shadow:0 0 0 3px rgba(95,208,126,.18),0 0 10px rgba(95,208,126,.55)}
+.tv[data-health="ok"]{border-color:rgba(95,208,126,.35)}
+.tv-sum{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ash);display:flex;gap:16px;flex-wrap:wrap}
+.tv-sum i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .tv[data-health="off"]{opacity:.45}
 .tv[data-health="off"] .dot{background:#c9573a}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -871,17 +874,22 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
         <label class="search">${icon("i-search")}<input id="cq" type="search" placeholder="Любой канал мира, например ТНВ, Россия 1, TRT" value="${esc(S.cq || "")}" autocomplete="off"></label>
         <section id="tvList">${skelCards(12, "tvgrid")}</section>`;
       const draw = list => {
+        lastList = list;
         const q = (S.cq || "").trim();
-        const items = tvSort(list, q).slice(0, 150);
+        const items = byHealth(tvSort(list, q).slice(0, 150));
         S.lists.tv = items;
         checkHealth(items);
-        $("#tvList").innerHTML = items.length ? `<div class="tvgrid">${items.map((c, i) => `
+        const nOk = items.filter(c => TV.health[c.url] === "ok").length, nOff = items.filter(c => TV.health[c.url] === "off").length, nWait = items.filter(c => TV.pending.has(c.url)).length;
+        $("#tvList").innerHTML = items.length ? `<div class="tv-sum"><span><i style="background:#5fd07e"></i>в эфире: ${nOk}</span><span><i style="background:var(--smoke)"></i>не проверено: ${items.length - nOk - nOff}${nWait ? " (проверяю…)" : ""}</span><span><i style="background:#c9573a"></i>не отвечают: ${nOff}</span></div>
+          <div class="tvgrid" style="margin-top:12px">${items.map((c, i) => `
           <button class="tv" data-tv="${i}" data-health="${TV.health[c.url] || ""}">
             <div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
             <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
           </button>`).join("")}</div>` : `<div class="status">Каналов не нашлось.</div>`;
       };
       setTimeout(() => TV.all().catch(() => {}), 1500);   // заранее подгружаем каталог всех каналов для поиска
+      let lastList = null;
+      onHealth = () => { if (my === tok && S.view === "tv" && lastList && $("#screen").hidden) { const y = $("#main").scrollTop; draw(lastList); $("#main").scrollTop = y; } };
       C.load().then(list => { if (my !== tok) return; const seen = new Set(); list = list.filter(c => { const k = c.title.replace(/\s*\(.*$/, "").toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); S.tvAll = list; draw(list); })
         .catch(e => { if (my === tok) $("#tvList").innerHTML = errBox(e); });
       let ct;
@@ -988,10 +996,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     if (ia) Archive.albums(q).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rIa").innerHTML = head("FLAC-концерты") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">Концертов не нашлось.</div>`); })
       .catch(e => { const b = $("#rIa"); if (b) b.innerHTML = head("FLAC-концерты") + errBox(e); });
     TV.all().then(all => { if (my !== tok || S.searchQ !== q) return;
-        const items = tvSort(all, q).slice(0, 12); S.lists.tv = items;
+        const items = byHealth(tvSort(all, q).slice(0, 12)); S.lists.tv = items;
         $("#rTv").innerHTML = head("Телеканалы") + (items.length ? `<div class="tvgrid">${items.map((c, i) => `
-          <button class="tv" data-tv="${i}"><div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
-          <b>${esc(c.title)}</b><span>${esc(c.group || "")}</span></button>`).join("")}</div>` : `<div class="status">Телеканалов не нашлось.</div>`); })
+          <button class="tv" data-tv="${i}" data-health="${TV.health[c.url] || ""}"><div class="logo">${c.logo && c.logo.startsWith("https") ? `<img src="${esc(c.logo)}" alt="" loading="lazy" onerror="this.remove()">` : `<span style="color:#333;font:600 18px var(--display)">${esc(c.title.slice(0, 2).toUpperCase())}</span>`}</div>
+          <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}</span></button>`).join("")}</div>` : `<div class="status">Телеканалов не нашлось.</div>`); })
       .catch(() => { const b = $("#rTv"); if (b) b.innerHTML = head("Телеканалы") + `<div class="status">Каналы не загрузились.</div>`; });
     const safe = q.replace(/[()":]/g, " ").trim();
     if (ar) Archive.audio(`(${safe})`, 24).then(as => { if (my !== tok || S.searchQ !== q) return; $("#rAr").innerHTML = head("Записи в архиве") + (as.length ? albumCards(as.slice(0, 12)) : `<div class="status">В архиве ничего не нашлось.</div>`); })
@@ -1119,7 +1127,12 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     return new Promise((ok, fail) => { const sc = document.createElement("script"); sc.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"; sc.onload = () => ok(window.Hls); sc.onerror = () => fail(new Error("не загрузился видеоплеер")); document.head.appendChild(sc); });
   }
   // проверка, вещает ли канал: читаем плейлист; если сервер закрыт для чтения из браузера, считаем «не проверен»
-  TV.health = {};
+  TV.health = (() => { const c = store.get("tembr.tvHealth", null); return c && Date.now() - c.at < 30 * 60 * 1000 ? c.map : {}; })();
+  TV.pending = new Set();
+  const saveHealth = () => store.set("tembr.tvHealth", { at: Date.now(), map: TV.health });
+  const hRank = c => { const h = TV.health[c.url]; return h === "ok" ? 0 : h === "off" ? 2 : 1; };
+  const byHealth = list => list.map((c, i) => [c, i]).sort((a, b) => hRank(a[0]) - hRank(b[0]) || a[1] - b[1]).map(x => x[0]);
+  let resortT = null, onHealth = null;
   async function probe(url){
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 7000);
     try {
@@ -1132,11 +1145,13 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
     } finally { clearTimeout(t); }
   }
   function checkHealth(items){
-    const todo = items.filter(c => !(c.url in TV.health)).slice(0, 60);
+    const todo = items.filter(c => !(c.url in TV.health) && !TV.pending.has(c.url));
+    todo.forEach(c => TV.pending.add(c.url));
     let i = 0;
     const worker = async () => {
       while (i < todo.length){
-        const c = todo[i++]; TV.health[c.url] = await probe(c.url);
+        const c = todo[i++]; TV.health[c.url] = await probe(c.url); TV.pending.delete(c.url);
+        clearTimeout(resortT); resortT = setTimeout(() => { saveHealth(); if (onHealth) onHealth(); }, 1500);
         const idx = (S.lists.tv || []).indexOf(c);
         const el = idx >= 0 && document.querySelector(`.tv[data-tv="${idx}"]`);
         if (el) el.dataset.health = TV.health[c.url];
