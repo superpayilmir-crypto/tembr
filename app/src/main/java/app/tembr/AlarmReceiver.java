@@ -30,16 +30,28 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
     }
 
+    static void save(Context c, long at, String urls, String title, boolean daily) {
+        c.getSharedPreferences("alarm", Context.MODE_PRIVATE).edit()
+                .putLong("at", at).putString("urls", urls).putString("title", title).putBoolean("daily", daily).apply();
+        schedule(c, at);
+    }
+
     static void cancel(Context c) {
+        c.getSharedPreferences("alarm", Context.MODE_PRIVATE).edit().clear().apply();
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         if (am != null) am.cancel(pi(c));
     }
 
     @Override
     public void onReceive(Context c, Intent intent) {
-        PlaybackService.playing = true;
-        PlaybackService.title = "Будильник";
-        PlaybackService.artist = "Тембр включает радио";
+        android.content.SharedPreferences sp = c.getSharedPreferences("alarm", Context.MODE_PRIVATE);
+        if (sp.getString("urls", "").isEmpty()) return;
+        if (sp.getBoolean("daily", false)) {
+            long next = sp.getLong("at", System.currentTimeMillis()) + 24L * 60 * 60 * 1000;
+            while (next < System.currentTimeMillis() + 60000) next += 24L * 60 * 60 * 1000;
+            sp.edit().putLong("at", next).apply();
+            schedule(c, next);
+        }
         Intent svc = new Intent(c, PlaybackService.class).setAction("alarm");
         try {
             if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(svc); else c.startService(svc);

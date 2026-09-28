@@ -129,6 +129,18 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Android 12: точные будильники нужно разрешить в настройках — открываем нужный экран один раз. */
+    void askExactAlarms() {
+        if (Build.VERSION.SDK_INT >= 31) {
+            android.app.AlarmManager am = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+            if (am != null && !am.canScheduleExactAlarms()) {
+                try {
+                    startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getPackageName())));
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
     /** Команда из уведомления: toggle / next / prev / pause. */
     void command(final String action) {
         ui.post(() -> {
@@ -164,10 +176,19 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void setAlarm(double at) { AlarmReceiver.schedule(MainActivity.this, (long) at); }
+        public void setAlarm(double at, String urls, String title, boolean daily) {
+            AlarmReceiver.save(MainActivity.this, (long) at, urls, title, daily);
+            ui.post(MainActivity.this::askExactAlarms);
+        }
 
         @JavascriptInterface
-        public void cancelAlarm() { AlarmReceiver.cancel(MainActivity.this); }
+        public void cancelAlarm() { AlarmReceiver.cancel(MainActivity.this); PlaybackService.stopAlarm(MainActivity.this); }
+
+        @JavascriptInterface
+        public void stopAlarmSound() { PlaybackService.stopAlarm(MainActivity.this); }
+
+        @JavascriptInterface
+        public boolean alarmRinging() { return PlaybackService.alarmRinging(); }
 
         @JavascriptInterface
         public void onVideo(boolean playing) {

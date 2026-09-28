@@ -1601,12 +1601,17 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
       <button class="btn ghost" data-alarm-off>Отменить</button></div>`;
   }
   function refreshAlarmUI(){ const slot = $("#alarmSlot"); if (slot) slot.innerHTML = alarmBar(); }
+  function alarmUrls(){
+    const list = [alarm.station, ...S.favs.filter(t => t.live && t.id !== alarm.station.id)];
+    return list.flatMap(t => t.srcs || [t.src]).filter(Boolean).slice(0, 12).join("\n");
+  }
+  function nativeArm(){ if (native && alarm) try { native.setAlarm(alarm.at, alarmUrls(), alarm.station.title, !!alarm.daily); } catch {} }
   function armKeepAlive(){
     // вызывается из нажатия пользователя: телефон разрешает звук только после касания
     if (!alarm) return;
     keepArmed = true;
+    if (native){ nativeArm(); refreshAlarmUI(); return; }   // на Android будильник ставит сама система
     if (audio.paused) keep.play().catch(() => { keepArmed = false; refreshAlarmUI(); });
-    if (native) try { native.setAlarm(alarm.at); } catch {}
     if ("mediaSession" in navigator && audio.paused) try { navigator.mediaSession.metadata = new MediaMetadata({ title: `Будильник ${fmtAt(alarm.at)}`, artist: alarm.station.title + " · Тембр" }); } catch {}
     refreshAlarmUI();
   }
@@ -1615,11 +1620,16 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (native) try { native.cancelAlarm(); } catch {}
     refreshAlarmUI();
   }
-  audio.addEventListener("play", () => { if (!keep.paused) keep.pause(); });
+  audio.addEventListener("play", () => { if (!keep.paused) keep.pause(); if (native) try { if (native.alarmRinging()) native.stopAlarmSound(); } catch {} });
   audio.addEventListener("pause", () => { if (alarm && keepArmed) keep.play().catch(() => {}); });
   let fading = null;
   function alarmFire(){
     if (!alarm) return;
+    if (native){
+      if (alarm.daily){ alarm.at = nextUfa(alarm.hh, alarm.mm, Date.now() + 60000); store.set("tembr.alarm", alarm); }
+      else { alarm = null; store.set("tembr.alarm", null); keepArmed = false; }
+      refreshAlarmUI(); showRinging(); return;
+    }
     const st = alarm.station, target = store.get("tembr.vol", 90) / 100;
     if (alarm.daily){ alarm.at = nextUfa(alarm.hh, alarm.mm, Date.now() + 60000); store.set("tembr.alarm", alarm); if (native) try { native.setAlarm(alarm.at); } catch {} }
     else disarm();
@@ -1634,6 +1644,11 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     refreshAlarmUI();
   }
   function alarmCheck(){ if (alarm && Date.now() >= alarm.at) alarmFire(); }
+  function showRinging(){
+    const slot = $("#alarmSlot"); if (!slot || !native) return;
+    let ringing = false; try { ringing = native.alarmRinging(); } catch {}
+    if (ringing) slot.insertAdjacentHTML("afterbegin", `<div class="alarmbar" id="ringBar">${icon("i-alarm")}<div class="ti"><b>Доброе утро!</b><span>Будильник играет</span></div><button class="btn primary" data-alarm-stop>Остановить</button></div>`);
+  }
   setInterval(alarmCheck, 5000);
   keep.addEventListener("timeupdate", alarmCheck);   // срабатывает и на заблокированном экране, пока идёт «тишина»
   document.addEventListener("visibilitychange", alarmCheck);
@@ -1650,10 +1665,18 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
         <label>Время по Уфе (сейчас ${ufaNow()})<input type="time" id="aTime" value="${defT}" required></label>
         <label>Станция<select id="aStation">${S.alarmPool.map((t, i) => `<option value="${i}"${alarm && alarm.station.id === t.id ? " selected" : ""}>${esc(t.title)}${t.artist ? " — " + esc(t.artist.split(" · ")[0]) : ""}</option>`).join("")}</select></label>
         <label class="tog"><input type="checkbox" id="aDaily"${alarm && alarm.daily ? " checked" : ""}>Повторять каждый день</label>
-        <p class="hint">Не закрывайте Тембр: просто заблокируйте телефон и положите рядом. Громкость звука мультимедиа должна быть не на нуле. Станция включится тихо и за минуту станет громче.</p>
-        <div class="row2"><button class="btn primary" type="submit">${icon("i-alarm")}Поставить будильник</button>${alarm ? `<button class="btn ghost" type="button" data-alarm-off>Отменить</button>` : ""}</div>
+        <p class="hint">${native ? "На Android будильник ставит сама система: он сработает на заблокированном экране, даже если Тембр закрыт. Громкость берётся из громкости будильника телефона. Станция включится тихо и за минуту станет громче." : "Не закрывайте Тембр: просто заблокируйте телефон и положите рядом. Громкость звука мультимедиа должна быть не на нуле. Станция включится тихо и за минуту станет громче."}</p>
+        <div class="row2"><button class="btn primary" type="submit">${icon("i-alarm")}Поставить будильник</button><button class="btn ghost" type="button" data-alarm-test>Проверить через 1 мин</button>${alarm ? `<button class="btn ghost" type="button" data-alarm-off>Отменить</button>` : ""}</div>
       </form>` : `<p class="lead" style="font-size:14px">Сначала выберите станцию: включите любую в списке или отметьте ♡, и она появится здесь.</p>`}`);
     const f = $("#aform");
+    const t = f && f.querySelector("[data-alarm-test]");
+    if (t) t.addEventListener("click", () => {
+      const st = S.alarmPool[+$("#aStation").value]; if (!st) return;
+      const at = Date.now() + 60000, d = new Date(at + UFA_OFFSET * 60000);
+      alarm = { hh: d.getUTCHours(), mm: d.getUTCMinutes(), at, daily: false, station: st };
+      store.set("tembr.alarm", alarm); closeSheet(); armKeepAlive();
+      toast("Тестовый будильник через 1 минуту. Заблокируйте телефон и подождите.");
+    });
     if (f) f.addEventListener("submit", e => {
       e.preventDefault();
       const [hh, mm] = $("#aTime").value.split(":").map(Number);
@@ -1666,7 +1689,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     });
   }
   setInterval(refreshAlarmUI, 60000);
-  if (alarm && native) try { native.setAlarm(alarm.at); } catch {}
+  if (alarm && native) nativeArm();
 
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
@@ -1748,6 +1771,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (d.film){ const id = d.film; scList = null; toast("Открываю фильм…"); Films.file(id).then(f => openScreen({ title: f.title, sub: [f.year, f.lang].filter(Boolean).join(" · "), src: f.src })).catch(e => toast("Не удалось открыть: " + e.message)); return; }
     if (d.alarmOpen !== undefined){ openAlarm(); return; }
     if (d.alarmArm !== undefined){ armKeepAlive(); return; }
+    if (d.alarmStop !== undefined){ if (native) try { native.stopAlarmSound(); } catch {} $("#ringBar")?.remove(); return; }
     if (d.alarmOff !== undefined){ disarm(); closeSheet(); toast("Будильник отменён"); return; }
     if (d.station){ S.station = d.station; S.rq = ""; render(); return; }
     if (d.region){ S.region = d.region; S.tq = ""; render(); return; }
@@ -1795,7 +1819,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
 
   // команды из Android-уведомления
   const videoActive = () => !$("#screen").hidden && (video.getAttribute("src") || hls);
-  window.tembr = { cmd(a){ if (a === "alarm"){ if (alarm && Date.now() >= alarm.at - 120000) alarmFire(); return; } if (videoActive()){ if (a === "toggle") video.paused ? video.play() : video.pause(); else if (a === "pause") video.pause(); else if (a === "next" && scList) playChannel(scIdx + 1, true); else if (a === "prev" && scList) playChannel(scIdx - 1, true); return; } if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
+  window.tembr = { cmd(a){ if (a === "alarm"){ if (alarm && Date.now() >= alarm.at - 120000) alarmFire(); return; } if (a === "alarmui"){ if (alarm && Date.now() >= alarm.at - 120000) alarmFire(); else showRinging(); return; } if (videoActive()){ if (a === "toggle") video.paused ? video.play() : video.pause(); else if (a === "pause") video.pause(); else if (a === "next" && scList) playChannel(scIdx + 1, true); else if (a === "prev" && scList) playChannel(scIdx - 1, true); return; } if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
                    pip(on){ document.body.classList.toggle("pipmode", !!on); },
                    back(){ if (!$("#screen").hidden){ closeScreen(); return true; } if (!$("#sheet").hidden){ closeSheet(); return true; } if (!$("#full").hidden){ closeFull(); return true; } if (S.view !== "home"){ go(S.view.startsWith("album:") ? S.prevView : "home"); return true; } return false; } };
 
