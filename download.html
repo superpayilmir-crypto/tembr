@@ -25,7 +25,8 @@
   --concrete:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .6 0 0 0 0 .56 0 0 0 0 .5 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   color-scheme:dark;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+a{-webkit-touch-callout:none}
 html,body{margin:0}
 body{background:var(--steel) var(--concrete);color:var(--bone);font:16px/1.55 var(--body);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 a{color:inherit}
@@ -52,11 +53,10 @@ svg{display:block}
 .brand span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e3cdb0;margin-top:5px}
 h1{font-family:var(--display);text-transform:uppercase;font-weight:600;font-size:clamp(34px,7vw,58px);line-height:1;letter-spacing:.01em;margin:6px 0 0;max-width:14ch;text-wrap:balance;text-shadow:0 2px 20px rgba(0,0,0,.5)}
 .lead{margin:0;color:#e8d8c4;max-width:52ch;font-size:17px}
-.brand{text-decoration:none;align-self:flex-start}
-.brand:hover b{color:var(--edison)}
+.brand{text-decoration:none;align-self:flex-start;display:inline-flex;width:max-content;max-width:100%}
+.brand:active,.feats a:active,.inside a:active,.btn:active{opacity:.75}
 .feats{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .feats a{font-family:var(--display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;background:var(--edison);color:var(--edison-ink);text-decoration:none;font-weight:600}
-.feats a:hover{background:#ffc672}
 .badges{display:flex;flex-wrap:wrap;gap:8px}
 .badges span{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 11px;border:1px solid rgba(239,230,216,.3);background:rgba(20,19,18,.4);backdrop-filter:blur(4px)}
 
@@ -72,9 +72,7 @@ h1{font-family:var(--display);text-transform:uppercase;font-weight:600;font-size
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 22px;font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;text-align:center}
 .btn svg{width:22px;height:22px}
 .btn.primary{background:var(--edison);color:var(--edison-ink);box-shadow:0 10px 30px -10px rgba(243,179,91,.7)}
-.btn.primary:hover{background:#ffc672}
 .btn.ghost{border:1px solid var(--rivet);color:var(--bone)}
-.btn.ghost:hover{border-color:var(--bone)}
 .meta{font-family:var(--mono);font-size:12px;color:var(--smoke);text-align:center;margin-top:-8px}
 ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:s}
 ol.steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;counter-increment:s;font-size:15px;color:var(--bone)}
@@ -96,13 +94,13 @@ ol.steps b{font-weight:600}
 /* what's inside */
 .inside{margin-top:36px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .inside a{border-top:2px solid var(--brick);padding-top:12px;text-decoration:none;display:block}
-.inside a:hover b{color:var(--edison)}
 .inside b{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-weight:500;font-size:17px;display:block}
 .inside span{color:var(--ash);font-size:14px}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:var(--smoke);font-size:13px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--bone);color:var(--steel);padding:11px 18px;font-weight:600;z-index:9;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 [hidden]{display:none!important}
 
+@media (hover:hover){.brand:hover b{color:var(--edison)}.feats a:hover{background:#ffc672}.inside a:hover b{color:var(--edison)}.btn.primary:hover{background:#ffc672}.btn.ghost:hover{border-color:var(--bone)}}
 @media (max-width:760px){
   .cards{grid-template-columns:1fr}
   .share{grid-template-columns:1fr;justify-items:center;text-align:center}
@@ -133,7 +131,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:
       <a class="brand" href="./" title="Открыть Тембр"><img src="icons/icon-192.png" alt=""><div><b>Тембр</b><span>радио · музыка · тв · кино</span></div></a>
       <h1>Всё, что звучит, в одном приложении</h1>
       <p class="lead">Радио со всего мира, татарская, башкирская и турецкая музыка, концерты без потерь качества, телеканалы и классика кино. Бесплатно, без регистрации и рекламы.</p>
-      <nav class="feats" aria-label="Разделы Тембра"><a href="./#radio">Радио</a><a href="./#tv">Телеканалы</a><a href="./#films">Кино</a><a href="./#tatar">Народная музыка</a><a href="./#lossless">Без потерь</a></nav>
+      <nav class="feats" aria-label="Разделы Тембра"><a href="./#music">Музыка</a><a href="./#radio">Радио</a><a href="./#tv">Телеканалы</a><a href="./#films">Кино</a><a href="./#tatar">Народная музыка</a><a href="./#lossless">Без потерь</a></nav>
       <div class="badges"><span>Бесплатно</span><span>Без регистрации</span><span>iPhone и Android</span></div>
     </div>
   </header>
@@ -182,7 +180,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:
 
   <section class="inside" aria-label="Что внутри">
     <a href="./#radio"><b>Радио →</b><span>Тысячи станций: татарские, башкирские, турецкие, российские и мировые.</span></a>
-    <a href="./#lossless"><b>Музыка →</b><span>Концерты в FLAC без потерь, народная музыка и архивные записи.</span></a>
+    <a href="./#music"><b>Музыка →</b><span>Концерты в FLAC без потерь, народная музыка и архивные записи.</span></a>
     <a href="./#tv"><b>Телеканалы →</b><span>Открытые каналы со всего мира, поиск и любимые.</span></a>
     <a href="./#films"><b>Кино →</b><span>Советская классика с официальных каналов студий и мировая классика.</span></a>
   </section>
