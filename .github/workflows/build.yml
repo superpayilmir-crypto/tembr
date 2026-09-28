@@ -23,8 +23,26 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
+      - name: Подготовить секретный ключ подписи
+        env:
+          TEMBR_KEYSTORE: ${{ secrets.TEMBR_KEYSTORE }}
+        run: |
+          if [ -n "$TEMBR_KEYSTORE" ]; then
+            echo "$TEMBR_KEYSTORE" | base64 -d > "$RUNNER_TEMP/tembr-release.p12"
+            echo "TEMBR_KEYSTORE_FILE=$RUNNER_TEMP/tembr-release.p12" >> "$GITHUB_ENV"
+            echo "SIGNED_WITH=секретный ключ" >> "$GITHUB_ENV"
+          else
+            echo "SIGNED_WITH=временный ключ" >> "$GITHUB_ENV"
+          fi
+
       - name: Собрать APK
+        env:
+          TEMBR_KEY_PASSWORD: ${{ secrets.TEMBR_KEY_PASSWORD }}
         run: gradle :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Удалить ключ с сервера сборки
+        if: always()
+        run: rm -f "$RUNNER_TEMP/tembr-release.p12"
 
       - name: Переименовать
         run: cp app/build/outputs/apk/release/app-release.apk Tembr.apk
@@ -36,5 +54,8 @@ jobs:
           name: Тембр 1.0.${{ github.run_number }}
           body: |
             Установка на Android: скачайте **Tembr.apk** на телефон, откройте файл и разрешите установку из этого источника.
+            Страница загрузки: https://superpayilmir-crypto.github.io/tembr/download.html
+
+            Подпись: ${{ env.SIGNED_WITH }}
           files: Tembr.apk
           make_latest: true

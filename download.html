@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141312">
+<title>Скачать Тембр</title>
+<meta name="description" content="Тембр — бесплатное радио, музыка, телеканалы и кино. Установка на iPhone и Android.">
+<meta property="og:title" content="Тембр — радио, музыка, ТВ и кино бесплатно">
+<meta property="og:description" content="Установите Тембр на iPhone или Android за минуту.">
+<meta property="og:image" content="https://superpayilmir-crypto.github.io/tembr/icons/icon-512.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --steel:#141312; --iron:#1c1a18; --iron2:#252220; --rivet:#3b3632;
+  --bone:#efe6d8; --ash:#a89f91; --smoke:#71695f;
+  --brick:#b4532f; --edison:#f3b35b; --edison-ink:#231606; --glow:rgba(243,179,91,.16); --green:#5fd07e;
+  --display:"Oswald","Arial Narrow",Impact,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --concrete:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .6 0 0 0 0 .56 0 0 0 0 .5 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--steel) var(--concrete);color:var(--bone);font:16px/1.55 var(--body);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--edison);outline-offset:3px}
+svg{display:block}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+
+/* hero: brick wall + bulb */
+.hero{position:relative;overflow:hidden;margin:0 -20px;padding:48px 20px 44px;background-color:#5b2716;
+  background-image:
+    radial-gradient(ellipse 55% 95% at 80% 0%,rgba(255,196,110,.45),transparent 60%),
+    linear-gradient(180deg,rgba(20,19,18,.1),rgba(20,19,18,.9) 94%),
+    repeating-linear-gradient(0deg,transparent 0 30px,#2a1911 30px 33px),
+    repeating-linear-gradient(90deg,transparent 0 70px,#2a1911 70px 73px),
+    linear-gradient(135deg,#8e3d22,#6a2c18 50%,#7c3520)}
+.hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 35px,#2a1911 35px 38px);-webkit-mask:repeating-linear-gradient(0deg,transparent 0 33px,#000 33px 66px);mask:repeating-linear-gradient(0deg,transparent 0 33px,#000 33px 66px);opacity:.9;pointer-events:none}
+.bulb{position:absolute;right:16%;top:0;width:2px;height:70px;background:#0d0c0b}
+.bulb i{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:30px;height:42px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 40%,#fff3d4,#f6be62 45%,rgba(243,179,91,.35) 70%,transparent 72%);filter:drop-shadow(0 0 18px rgba(255,190,90,.9)) drop-shadow(0 0 60px rgba(255,170,70,.55))}
+.hero-in{position:relative;max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{width:64px;height:64px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.brand b{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+.brand span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e3cdb0;margin-top:5px}
+h1{font-family:var(--display);text-transform:uppercase;font-weight:600;font-size:clamp(34px,7vw,58px);line-height:1;letter-spacing:.01em;margin:6px 0 0;max-width:14ch;text-wrap:balance;text-shadow:0 2px 20px rgba(0,0,0,.5)}
+.lead{margin:0;color:#e8d8c4;max-width:52ch;font-size:17px}
+.feats{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.feats span{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 11px;border:1px solid rgba(239,230,216,.3);background:rgba(20,19,18,.4);backdrop-filter:blur(4px)}
+
+/* install cards */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}
+.card{background:var(--iron);border:1px solid var(--rivet);padding:24px;display:flex;flex-direction:column;gap:18px;position:relative}
+.card.mine{border-color:var(--edison);box-shadow:0 0 0 1px var(--edison),0 20px 50px -24px rgba(243,179,91,.5)}
+.mine-tag{position:absolute;top:-12px;left:20px;background:var(--edison);color:var(--edison-ink);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;font-weight:500}
+.card-h{display:flex;align-items:center;gap:14px}
+.card-h svg{width:34px;height:34px;color:var(--edison);flex:none}
+.card h2{font-family:var(--display);text-transform:uppercase;font-weight:600;letter-spacing:.05em;font-size:26px;margin:0;line-height:1}
+.card-h small{display:block;color:var(--ash);font-size:13px;margin-top:4px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 22px;font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;text-align:center}
+.btn svg{width:22px;height:22px}
+.btn.primary{background:var(--edison);color:var(--edison-ink);box-shadow:0 10px 30px -10px rgba(243,179,91,.7)}
+.btn.primary:hover{background:#ffc672}
+.btn.ghost{border:1px solid var(--rivet);color:var(--bone)}
+.btn.ghost:hover{border-color:var(--bone)}
+.meta{font-family:var(--mono);font-size:12px;color:var(--smoke);text-align:center;margin-top:-8px}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;counter-increment:s;font-size:15px;color:var(--bone)}
+ol.steps li::before{content:counter(s);width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--rivet);font-family:var(--mono);font-size:13px;color:var(--edison)}
+ol.steps b{font-weight:600}
+.ic{display:inline-flex;vertical-align:-4px;width:20px;height:20px;color:var(--edison);margin-inline:2px}
+.note{font-size:13.5px;color:var(--ash);border-left:3px solid var(--brick);padding:6px 0 6px 12px}
+
+/* share */
+.share{margin-top:28px;display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;background:var(--iron);border:1px dashed var(--rivet);padding:24px}
+.qr{width:168px;height:168px;background:#fff;padding:10px;display:grid;place-items:center}
+.qr img,.qr canvas,.qr svg{width:100%;height:100%;image-rendering:pixelated}
+.share h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-weight:500;font-size:22px;margin:0 0 6px}
+.share p{margin:0 0 14px;color:var(--ash)}
+.linkrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.linkrow code{font-family:var(--mono);font-size:13px;background:var(--steel);border:1px solid var(--rivet);padding:10px 12px;word-break:break-all;flex:1 1 260px;user-select:all}
+.linkrow .btn{min-height:44px;font-size:15px}
+
+/* what's inside */
+.inside{margin-top:36px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.inside div{border-top:2px solid var(--brick);padding-top:12px}
+.inside b{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-weight:500;font-size:17px;display:block}
+.inside span{color:var(--ash);font-size:14px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:var(--smoke);font-size:13px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--bone);color:var(--steel);padding:11px 18px;font-weight:600;z-index:9;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+[hidden]{display:none!important}
+
+@media (max-width:760px){
+  .cards{grid-template-columns:1fr}
+  .share{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .linkrow{justify-content:center}
+  .inside{grid-template-columns:1fr 1fr}
+  .hero{padding:34px 20px 34px}
+  .bulb{right:10%}
+  .brand img{width:54px;height:54px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 4.5h4" stroke-linecap="round"/><circle cx="12" cy="18.5" r="1" fill="currentColor"/></g></symbol>
+  <symbol id="i-android" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="1.5"/><path d="M6 5h12M6 18h12"/><path d="M10 20h4" stroke-linecap="round"/></g></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></g></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></g></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5M4 21h16"/></g></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="1"/><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4"/></g></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="bulb" aria-hidden="true"><i></i></div>
+    <div class="hero-in">
+      <div class="brand"><img src="icons/icon-192.png" alt=""><div><b>Тембр</b><span>радио · музыка · тв · кино</span></div></div>
+      <h1>Всё, что звучит, в одном приложении</h1>
+      <p class="lead">Радио со всего мира, татарская, башкирская и турецкая музыка, концерты без потерь качества, телеканалы и классика кино. Бесплатно, без регистрации и рекламы.</p>
+      <div class="feats"><span>Бесплатно</span><span>Без регистрации</span><span>Работает в России</span><span>iPhone и Android</span></div>
+    </div>
+  </header>
+
+  <section class="cards" aria-label="Установка">
+    <article class="card" id="cardIos">
+      <span class="mine-tag" hidden>Ваш телефон</span>
+      <div class="card-h"><svg><use href="#i-apple"/></svg><div><h2>iPhone</h2><small>iOS 15 и новее · через Safari</small></div></div>
+      <a class="btn primary" id="iosBtn" href="https://superpayilmir-crypto.github.io/tembr/"><svg><use href="#i-open"/></svg>Открыть Тембр</a>
+      <ol class="steps">
+        <li><span>Откройте эту страницу в <b>Safari</b> и нажмите «Открыть Тембр».</span></li>
+        <li><span>Внизу нажмите <span class="ic"><svg><use href="#i-share"/></svg></span> <b>«Поделиться»</b>.</span></li>
+        <li><span>Выберите <span class="ic"><svg><use href="#i-plus"/></svg></span> <b>«На экран Домой»</b> и нажмите «Добавить».</span></li>
+        <li><span>Запускайте Тембр иконкой с кирпичной стеной, как обычное приложение.</span></li>
+      </ol>
+      <p class="note" id="iosNote" hidden>Похоже, страница открыта не в Safari. Скопируйте ссылку внизу и вставьте её в Safari: только там есть «На экран Домой».</p>
+    </article>
+
+    <article class="card" id="cardAndroid">
+      <span class="mine-tag" hidden>Ваш телефон</span>
+      <div class="card-h"><svg><use href="#i-android"/></svg><div><h2>Android</h2><small>Android 8 и новее · файл APK</small></div></div>
+      <a class="btn primary" id="apkBtn" href="https://github.com/superpayilmir-crypto/tembr/releases/latest/download/Tembr.apk"><svg><use href="#i-down"/></svg>Скачать APK</a>
+      <div class="meta" id="apkMeta">загружаю сведения о версии…</div>
+      <ol class="steps">
+        <li><span>Нажмите «Скачать APK» и дождитесь загрузки файла <b>Tembr.apk</b>.</span></li>
+        <li><span>Откройте скачанный файл из уведомления или папки «Загрузки».</span></li>
+        <li><span>Если телефон предупредит об «неизвестном источнике», нажмите <b>«Настройки»</b> и включите <b>«Разрешить из этого источника»</b>.</span></li>
+        <li><span>Нажмите <b>«Установить»</b>. При первом запуске разрешите уведомления, чтобы управлять музыкой из шторки.</span></li>
+      </ol>
+      <p class="note">Android предупреждает о любом приложении не из Google Play. Тембр не просит доступа к контактам, фото или звонкам.</p>
+    </article>
+  </section>
+
+  <section class="share" aria-label="Поделиться">
+    <div class="qr" id="qr" aria-label="QR-код со ссылкой на эту страницу"></div>
+    <div>
+      <h3>Поделитесь с друзьями</h3>
+      <p>Наведите камеру телефона на QR-код или отправьте ссылку. Страница сама подскажет, как установить Тембр на iPhone или Android.</p>
+      <div class="linkrow">
+        <code id="link">https://superpayilmir-crypto.github.io/tembr/download.html</code>
+        <button class="btn ghost" id="copyBtn"><svg><use href="#i-copy"/></svg>Копировать</button>
+        <button class="btn ghost" id="shareBtn" hidden><svg><use href="#i-share"/></svg>Отправить</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="inside" aria-label="Что внутри">
+    <div><b>Радио</b><span>Тысячи станций: татарские, башкирские, турецкие, российские и мировые.</span></div>
+    <div><b>Музыка</b><span>Концерты в FLAC без потерь, народная музыка и архивные записи.</span></div>
+    <div><b>Телеканалы</b><span>Открытые каналы со всего мира, поиск и любимые.</span></div>
+    <div><b>Кино</b><span>Советская классика с официальных каналов студий и мировая классика.</span></div>
+  </section>
+
+  <footer>
+    <span id="ver">Тембр</span>
+    <span>Контент из открытых источников: Internet Archive, Radio Browser, iptv-org, Audius.</span>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const PAGE = "https://superpayilmir-crypto.github.io/tembr/download.html";
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+  const isSafari = isIOS && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|YaBrowser|OPiOS|Telegram|Instagram|FBAN|FBAV|VK/.test(ua);
+
+  // своё устройство — первым и с подсветкой
+  const mine = isIOS ? $("#cardIos") : isAndroid ? $("#cardAndroid") : null;
+  if (mine){
+    mine.classList.add("mine"); mine.querySelector(".mine-tag").hidden = false;
+    mine.parentNode.prepend(mine);
+  }
+  if (isIOS && !isSafari) $("#iosNote").hidden = false;
+
+  // версия и размер APK из последнего выпуска
+  fetch("https://api.github.com/repos/superpayilmir-crypto/tembr/releases/latest")
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(rel => {
+      const a = (rel.assets || []).find(x => /\.apk$/i.test(x.name));
+      const d = new Date(rel.published_at || rel.created_at);
+      const date = d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+      const size = a ? (a.size / 1048576).toFixed(1).replace(".", ",") + " МБ" : "";
+      const v = (rel.tag_name || "").replace(/^v/, "");
+      $("#apkMeta").textContent = [v && "версия " + v, size, date].filter(Boolean).join(" · ");
+      $("#ver").textContent = "Тембр " + v + " · обновлено " + date;
+    })
+    .catch(() => { $("#apkMeta").textContent = "последняя версия"; });
+
+  // QR-код
+  try {
+    const q = qrcode(0, "M"); q.addData(PAGE); q.make();
+    $("#qr").innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  } catch { $("#qr").textContent = "QR"; }
+
+  // копировать и отправить
+  let tt; const toast = m => { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 2500); };
+  $("#copyBtn").addEventListener("click", () => {
+    const done = () => toast("Ссылка скопирована");
+    if (navigator.clipboard) navigator.clipboard.writeText(PAGE).then(done).catch(sel); else sel();
+    function sel(){ const r = document.createRange(); r.selectNodeContents($("#link")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Ссылка выделена — скопируйте её"); }
+  });
+  if (navigator.share){
+    $("#shareBtn").hidden = false;
+    $("#shareBtn").addEventListener("click", () => navigator.share({ title: "Тембр", text: "Радио, музыка, ТВ и кино бесплатно:", url: PAGE }).catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>

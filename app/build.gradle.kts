@@ -14,10 +14,22 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = rootProject.file("tembr.keystore")
-            storePassword = "tembr2026"
-            keyAlias = "tembr"
-            keyPassword = "tembr2026"
+            // Секретный ключ приходит из настроек GitHub (Secrets): TEMBR_KEYSTORE и TEMBR_KEY_PASSWORD.
+            val ksFile = System.getenv("TEMBR_KEYSTORE_FILE")
+            val ksPass = System.getenv("TEMBR_KEY_PASSWORD")
+            if (!ksFile.isNullOrBlank() && !ksPass.isNullOrBlank()) {
+                storeFile = file(ksFile)
+                storeType = "PKCS12"
+                storePassword = ksPass
+                keyAlias = "tembr"
+                keyPassword = ksPass
+            } else {
+                // Временный запасной ключ, пока секреты не добавлены в GitHub
+                storeFile = rootProject.file("tembr.keystore")
+                storePassword = "tembr2026"
+                keyAlias = "tembr"
+                keyPassword = "tembr2026"
+            }
         }
     }
 
