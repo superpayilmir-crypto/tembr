@@ -223,7 +223,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .full-foot{display:flex;justify-content:space-between;align-items:center}
 
 /* ---------- screen (TV / films) ---------- */
-.screen{position:fixed;inset:0;z-index:25;background:var(--steel) var(--concrete);display:flex;flex-direction:column;padding:var(--sat) 0 var(--sab);animation:up .28s cubic-bezier(.2,.8,.2,1);overflow-y:auto}
+.screen{position:fixed;inset:0;z-index:25;background:var(--steel) var(--concrete);display:flex;flex-direction:column;padding:var(--sat) 0 var(--sab);animation:up .28s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.screen-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .stage{position:relative;width:100%;aspect-ratio:16/9;max-height:78vh;background:#000;flex:none;overflow:hidden;box-shadow:0 20px 40px -20px rgba(0,0,0,.9)}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0;transition:opacity .5s ease}
 .stage.on video{opacity:1}
@@ -269,6 +270,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .vlive{flex:1;display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff}
 .vlive i{width:8px;height:8px;border-radius:50%;background:#e2493a;box-shadow:0 0 0 3px rgba(226,73,58,.3);animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(226,73,58,0)}}
+.unmute{position:absolute;left:12px;bottom:46px;z-index:3;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;background:var(--edison);color:var(--edison-ink);font-family:var(--display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:up .3s ease-out}
+.unmute svg{width:18px;height:18px}
 .screen-note{padding:10px 16px;color:var(--ash);font-size:13.5px;min-height:20px}
 .strip-head{display:flex;align-items:baseline;justify-content:space-between;padding:4px 16px 8px}
 .strip-head span{font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:16px}
@@ -314,7 +317,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 
 .screen.mini{visibility:hidden;pointer-events:none}
 body.pipmode .screen{padding:0!important;animation:none;overflow:hidden}
-body.pipmode .ov,body.pipmode .screen-note,body.pipmode .spin,body.pipmode .strip,body.pipmode .strip-head{display:none!important}
+body.pipmode .ov,body.pipmode .screen-scroll,body.pipmode .spin{display:none!important}
 body.pipmode .stage{height:100vh;max-height:none;aspect-ratio:auto}
 body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
 
@@ -557,9 +560,11 @@ body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
       </div>
     </div>
   </div>
-  <div class="screen-note" id="scNote"></div>
-  <div class="strip-head" id="stripHead" hidden><span>Каналы</span><small id="stripCount"></small></div>
-  <div class="strip" id="scStrip"></div>
+  <div class="screen-scroll" id="scScroll">
+    <div class="screen-note" id="scNote"></div>
+    <div class="strip-head" id="stripHead" hidden><span>Каналы</span><small id="stripCount"></small></div>
+    <div class="strip" id="scStrip"></div>
+  </div>
 </section>
 <div class="toast" id="toast" hidden></div>
 <audio id="audio" preload="auto"></audio>
@@ -1360,7 +1365,9 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (!scList || scList.length < 2){ st.innerHTML = ""; head.hidden = true; return; }
     head.hidden = false; $("#stripCount").textContent = `${scIdx + 1} из ${scList.length}`;
     S.lists.tv = scList;
+    const y = $("#scScroll").scrollTop;
     st.innerHTML = scList.map(tvCard).join("");
+    $("#scScroll").scrollTop = y;
     const cur = st.querySelector(`.tv[data-tv="${scIdx}"]`); if (cur) cur.classList.add("cur");
   }
   function playChannel(i, auto){
@@ -1392,7 +1399,13 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     } catch {}
     showOv();
   }
-  function setMuteIcon(){ $("#vMuteIcon").setAttribute("href", video.muted ? "#i-mute" : "#i-vol"); }
+  function showUnmute(){
+    let b = $("#unmuteBtn");
+    if (!b){ b = document.createElement("button"); b.id = "unmuteBtn"; b.className = "unmute"; b.dataset.vunmute = ""; b.innerHTML = `${icon("i-mute")}<span>Включить звук</span>`; stage.appendChild(b); }
+    b.hidden = false;
+  }
+  function hideUnmute(){ const b = $("#unmuteBtn"); if (b) b.hidden = true; }
+  function setMuteIcon(){ if (!video.muted) hideUnmute(); $("#vMuteIcon").setAttribute("href", video.muted ? "#i-mute" : "#i-vol"); }
   video.addEventListener("play", () => { $("#ovPlayIcon").setAttribute("href", "#i-pause"); showOv(); });
   video.addEventListener("pause", () => { $("#ovPlayIcon").setAttribute("href", "#i-play"); showOv(true); });
   // перемотка для фильмов
@@ -1408,6 +1421,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
 
   async function openScreen({ title, sub, src, live, logo, keepHistory }){
     const my = ++scToken;
+    if (!keepHistory) { video.muted = false; hideUnmute(); }
     audio.pause();
     scLive = !!live;
     $("#scTitle").textContent = title; $("#scSub").textContent = sub || "";
@@ -1425,7 +1439,12 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     scTimer = setTimeout(() => { if (my === scToken && (video.paused || video.readyState < 3)) scFail(live ? "Канал не отвечает." : "Фильм долго не загружается."); }, live ? 15000 : 25000);
     const isHls = /\.m3u8(\?|$)/i.test(src);
     const native = !!video.canPlayType("application/vnd.apple.mpegurl");
-    const needTap = () => { posterState({ status: "Нажмите, чтобы включить", actions: `<button class="btn primary" data-vtoggle>▶ Смотреть</button>` }); };
+    const needTap = () => {
+      // телефон не дал включить звук без касания: запускаем без звука, картинка идёт сразу
+      video.muted = true; setMuteIcon();
+      video.play().then(() => { if (my === scToken) showUnmute(); })
+        .catch(() => posterState({ status: "Нажмите, чтобы включить", actions: `<button class="btn primary" data-vtoggle>▶ Смотреть</button>` }));
+    };
     const useHlsJs = async () => {
       const Hls = await loadHlsLib();
       if (my !== scToken) return;
@@ -1557,6 +1576,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (d.scfav !== undefined){ toggleTvFav(scList && scList[scIdx]); return; }
     if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ scList = L.slice(); playChannel(+d.tv, false); } return; }
     if (d.vtoggle !== undefined){ toggleVideo(); return; }
+    if (d.vunmute !== undefined){ video.muted = false; setMuteIcon(); hideUnmute(); if (video.paused) video.play().catch(() => {}); showOv(); return; }
     if (d.vmute !== undefined){ video.muted = !video.muted; setMuteIcon(); showOv(); return; }
     if (d.vfs !== undefined){ toggleFs(); return; }
     if (d.scNext !== undefined){ scTries = 0; playChannel(scIdx + 1, true); return; }
