@@ -245,7 +245,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .tv .tvfav svg{width:18px;height:18px}
 .tv .tvfav[aria-pressed="true"]{color:var(--brick);background:rgba(20,19,18,.85)}
 .seg button.favchip{display:inline-flex;align-items:center;gap:6px}
-.seg button.favchip svg{width:14px;height:14px;color:var(--brick)}
+.seg button.favchip svg{width:14px;height:14px;color:var(--brick);flex:none}
+.seg button svg{width:14px;height:14px}
 .seg button.favchip[aria-pressed="true"] svg{color:var(--brick)}
 #scFav[aria-pressed="true"]{color:var(--brick)}
 .tv[data-health="off"] .dot{background:#c9573a}
@@ -370,6 +371,7 @@ body.pipmode .screen-wrap video{min-height:0}
   <symbol id="i-out" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
   <symbol id="i-pip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="1"/><rect x="12" y="12" width="8" height="6" fill="currentColor"/></g></symbol>
   <symbol id="i-dl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></g></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
 </svg>
 
@@ -476,6 +478,7 @@ body.pipmode .screen-wrap video{min-height:0}
 <section class="screen" id="screen" hidden aria-label="Просмотр">
   <div class="screen-top">
     <div class="ti"><b id="scTitle"></b><span id="scSub"></span></div>
+    <button class="ib" data-act="sleep" title="Таймер сна"><svg><use href="#i-moon"/></svg></button>
     <button class="ib" data-scfav id="scFav" aria-pressed="false" title="В любимые" hidden><svg><use href="#i-heart" id="scFavIcon"/></svg></button>
     <button class="ib" data-pip id="pipBtn" title="Маленькое окно" hidden><svg><use href="#i-pip"/></svg></button>
     <button class="ib" data-close-screen title="Закрыть"><svg><use href="#i-close"/></svg></button>
@@ -655,16 +658,29 @@ body.pipmode .screen-wrap video{min-height:0}
             <b>${esc(c.title)}</b><span><i class="dot"></i>${esc(c.group || "")}${c.part ? " · не 24/7" : ""}</span>
           </div>`;
 
+  let tvRecent = store.get("tembr.tvRecent", []);
+  function pushTvRecent(c){ if (!c) return; tvRecent = [{ title: c.title, url: c.url, logo: c.logo, group: c.group, name: c.name, part: c.part }, ...tvRecent.filter(x => x.url !== c.url)].slice(0, 24); store.set("tembr.tvRecent", tvRecent); }
   const CHANNELS = {
     fav:   { nav: "Любимые",      fav: true, load: async () => tvFavs.slice() },
+    recent:{ nav: "Недавние",     recent: true, keepOrder: true, load: async () => tvRecent.slice() },
     ru:    { nav: "Россия",       load: () => TV.list("countries/ru.m3u") },
     tat:   { nav: "Татарстан",    load: async () => { const [a, b] = await Promise.all([TV.list("languages/tat.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /татар|tatar|тнв|tnv|казан|kazan|huzur|хузур/i.test(c.name))]; } },
     bak:   { nav: "Башкортостан", load: async () => { const [a, b] = await Promise.all([TV.list("languages/bak.m3u").catch(() => []), TV.list("countries/ru.m3u")]); return [...a, ...b.filter(c => /башк|bashk|бст|bst|уфа|ufa|тамыр|tamyr/i.test(c.name))]; } },
     tr:    { nav: "Türkiye",      load: () => TV.list("countries/tr.m3u") },
-    news:  { nav: "Новости мира", load: () => TV.list("categories/news.m3u") },
-    music: { nav: "Музыка",       load: () => TV.list("categories/music.m3u") },
-    kids:  { nav: "Детям",        load: () => TV.list("categories/kids.m3u") },
-    docs:  { nav: "Документальное", load: () => TV.list("categories/documentary.m3u") }
+    news:  { nav: "Новости мира", topic: true, load: () => TV.list("categories/news.m3u") },
+    music: { nav: "Музыка", topic: true,       load: () => TV.list("categories/music.m3u") },
+    kids:  { nav: "Детям", topic: true,        load: () => TV.list("categories/kids.m3u") },
+    docs:  { nav: "Документальное", topic: true, load: () => TV.list("categories/documentary.m3u") },
+    sport: { nav: "Спорт",        topic: true, load: () => TV.list("categories/sports.m3u") },
+    movies:{ nav: "Кино",         topic: true, load: () => TV.list("categories/movies.m3u") },
+    series:{ nav: "Сериалы",      topic: true, load: () => TV.list("categories/series.m3u") },
+    anim:  { nav: "Мультфильмы",  topic: true, load: () => TV.list("categories/animation.m3u") },
+    fun:   { nav: "Развлечения",  topic: true, load: () => TV.list("categories/entertainment.m3u") },
+    comedy:{ nav: "Юмор",         topic: true, load: () => TV.list("categories/comedy.m3u") },
+    cook:  { nav: "Кулинария",    topic: true, load: () => TV.list("categories/cooking.m3u") },
+    travel:{ nav: "Путешествия",  topic: true, load: () => TV.list("categories/travel.m3u") },
+    sci:   { nav: "Наука",        topic: true, load: () => TV.list("categories/science.m3u") },
+    auto:  { nav: "Авто",         topic: true, load: () => TV.list("categories/auto.m3u") }
   };
   const Films = {
     // только фильмы, которые перешли в общественное достояние или выложены под свободной лицензией
@@ -940,18 +956,22 @@ body.pipmode .screen-wrap video{min-height:0}
       page.innerHTML = `
         <div class="sec"><span class="tag">Прямой эфир · открытый каталог iptv-org</span><h1>Телеканалы</h1>
           <p class="lead">Бесплатные телеканалы, которые сами вещают в интернет. Некоторые включаются не круглосуточно или временно не работают: тогда просто выберите другой.</p></div>
-        <div class="seg" role="group" aria-label="Страна или тема">${Object.entries(CHANNELS).map(([k, c]) => `<button data-chan="${k}" aria-pressed="${k === (S.chan || "ru")}"${c.fav ? ` class="favchip"` : ""}>${c.fav ? icon("i-heart-f") : ""}${c.nav}${c.fav && tvFavs.length ? ` · ${tvFavs.length}` : ""}</button>`).join("")}</div>
+        ${(() => { const chip = ([k, c]) => `<button data-chan="${k}" aria-pressed="${k === (S.chan || "ru")}"${c.fav || c.recent ? ` class="favchip"` : ""}>${c.fav ? icon("i-heart-f") : c.recent ? icon("i-clock") : ""}${c.nav}${c.fav && tvFavs.length ? ` · ${tvFavs.length}` : ""}${c.recent && tvRecent.length ? ` · ${tvRecent.length}` : ""}</button>`;
+          const all = Object.entries(CHANNELS);
+          return `<div class="seg" role="group" aria-label="Мои и страны">${all.filter(([, c]) => !c.topic).map(chip).join("")}</div>
+                  <div class="chips" role="group" aria-label="Темы">${all.filter(([, c]) => c.topic).map(([k, c]) => `<button class="chip" data-chan="${k}" aria-pressed="${k === S.chan}">${c.nav}</button>`).join("")}</div>`; })()}
         <label class="search">${icon("i-search")}<input id="cq" type="search" placeholder="Любой канал мира, например ТНВ, Россия 1, TRT" value="${esc(S.cq || "")}" autocomplete="off"></label>
         <section id="tvList">${skelCards(12, "tvgrid")}</section>`;
       const draw = list => {
         lastList = list;
         const q = (S.cq || "").trim();
-        const items = byHealth(tvSort(list, q).slice(0, 150));
+        const base = tvSort(list, q).slice(0, 150);
+        const items = C.keepOrder ? base : byHealth(base);
         S.lists.tv = items;
         checkHealth(items);
         const nOk = items.filter(c => TV.health[c.url] === "ok").length, nOff = items.filter(c => TV.health[c.url] === "off").length, nWait = items.filter(c => TV.pending.has(c.url)).length;
         $("#tvList").innerHTML = items.length ? `<div class="tv-sum"><span><i style="background:#5fd07e"></i>в эфире: ${nOk}</span><span><i style="background:var(--smoke)"></i>не проверено: ${items.length - nOk - nOff}${nWait ? " (проверяю…)" : ""}</span><span><i style="background:#c9573a"></i>не отвечают: ${nOff}</span></div>
-          <div class="tvgrid" style="margin-top:12px">${items.map(tvCard).join("")}</div>` : `<div class="status">${S.chan === "fav" && !(S.cq || "") ? "Пока пусто. Нажмите ♡ на карточке канала или в плеере, и канал появится здесь." : "Каналов не нашлось."}</div>`;
+          <div class="tvgrid" style="margin-top:12px">${items.map(tvCard).join("")}</div>` : `<div class="status">${S.chan === "fav" && !(S.cq || "") ? "Пока пусто. Нажмите ♡ на карточке канала или в плеере, и канал появится здесь." : S.chan === "recent" && !(S.cq || "") ? "Здесь появятся каналы, которые вы смотрели." : "Каналов не нашлось."}</div>`;
       };
       setTimeout(() => TV.all().catch(() => {}), 1500);   // заранее подгружаем каталог всех каналов для поиска
       let lastList = null;
@@ -1175,7 +1195,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (cur()?.live){ np("cur", e => e.textContent = fmt(audio.currentTime)); return; }
     $$("[data-seek]").forEach(s => { s.value = p * 1000; paint(s); });
     np("cur", e => e.textContent = fmt(audio.currentTime));
-    if (S.sleepAt && Date.now() >= S.sleepAt){ setSleep(0); audio.pause(); toast("Таймер сна: музыка остановлена"); }
+    sleepCheck();
   });
   $$("[data-seek]").forEach(s => {
     s.addEventListener("input", () => { seeking = true; paint(s); np("cur", e => e.textContent = fmt(s.value / 1000 * (audio.duration || 0))); });
@@ -1290,6 +1310,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     } catch (e) { scFail("Не удалось открыть: " + e.message); }
   }
   video.addEventListener("playing", () => { clearTimeout(scTimer); $("#scSpin").hidden = true; scTries = 0;
+    if (scList && scList[scIdx]) pushTvRecent(scList[scIdx]);
     const c = scList && scList[scIdx]; if (c && c.url === (hls ? hls.url : video.currentSrc) ) TV.health[c.url] = "ok";
     scNote(scList ? `В эфире. <button class="btn ghost" data-sc-prev>← Предыдущий</button><button class="btn ghost" data-sc-next>Следующий →</button>` : ""); });
   video.addEventListener("waiting", () => { if (!$("#screen").hidden) $("#scSpin").hidden = false; });
@@ -1342,6 +1363,15 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
           <div class="ti"><b>${esc(t.title)}</b><span>${esc(t.artist)}</span></div>${qBadge(t)}
         </div>`).join("") : `<div class="status">Очередь пуста. Включите любой трек.</div>`}</div>`);
   }
+  function sleepCheck(){
+    if (S.sleepAt && Date.now() >= S.sleepAt){
+      setSleep(0); audio.pause();
+      if (!$("#screen").hidden) video.pause();
+      toast("Таймер сна: воспроизведение остановлено");
+    }
+  }
+  setInterval(sleepCheck, 5000);
+  video.addEventListener("ended", () => { if (S.sleepEnd){ S.sleepEnd = false; setSleep(0); toast("Таймер сна: воспроизведение остановлено"); } });
   function setSleep(min){
     S.sleepAt = 0; S.sleepEnd = false;
     if (min === "end") S.sleepEnd = true; else if (min) S.sleepAt = Date.now() + min * 60000;
@@ -1350,7 +1380,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
   function openSleep(){
     const left = S.sleepAt ? Math.ceil((S.sleepAt - Date.now()) / 60000) : 0;
     openSheet("sleep", `<div class="sec-head"><h2>Таймер сна</h2><button class="link" data-close-sheet>Закрыть</button></div>
-      <p class="lead" style="font-size:14px">${S.sleepAt ? `Музыка выключится через ${left} мин.` : S.sleepEnd ? "Музыка выключится после этого трека." : "Музыка плавно остановится в выбранное время."}</p>
+      <p class="lead" style="font-size:14px">${S.sleepAt ? `Музыка выключится через ${left} мин.` : S.sleepEnd ? "Музыка выключится после этого трека." : "Музыка, радио или телевизор выключатся в выбранное время."}</p>
       <div class="opts">
         <button class="opt" data-sleep="15">15 минут</button><button class="opt" data-sleep="30">30 минут</button>
         <button class="opt" data-sleep="60">1 час</button><button class="opt" data-sleep="end">После трека</button>
