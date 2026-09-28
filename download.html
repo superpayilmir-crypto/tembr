@@ -52,8 +52,13 @@ svg{display:block}
 .brand span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e3cdb0;margin-top:5px}
 h1{font-family:var(--display);text-transform:uppercase;font-weight:600;font-size:clamp(34px,7vw,58px);line-height:1;letter-spacing:.01em;margin:6px 0 0;max-width:14ch;text-wrap:balance;text-shadow:0 2px 20px rgba(0,0,0,.5)}
 .lead{margin:0;color:#e8d8c4;max-width:52ch;font-size:17px}
+.brand{text-decoration:none;align-self:flex-start}
+.brand:hover b{color:var(--edison)}
 .feats{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.feats span{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 11px;border:1px solid rgba(239,230,216,.3);background:rgba(20,19,18,.4);backdrop-filter:blur(4px)}
+.feats a{font-family:var(--display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;background:var(--edison);color:var(--edison-ink);text-decoration:none;font-weight:600}
+.feats a:hover{background:#ffc672}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badges span{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 11px;border:1px solid rgba(239,230,216,.3);background:rgba(20,19,18,.4);backdrop-filter:blur(4px)}
 
 /* install cards */
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}
@@ -90,7 +95,8 @@ ol.steps b{font-weight:600}
 
 /* what's inside */
 .inside{margin-top:36px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.inside div{border-top:2px solid var(--brick);padding-top:12px}
+.inside a{border-top:2px solid var(--brick);padding-top:12px;text-decoration:none;display:block}
+.inside a:hover b{color:var(--edison)}
 .inside b{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-weight:500;font-size:17px;display:block}
 .inside span{color:var(--ash);font-size:14px}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:var(--smoke);font-size:13px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
@@ -124,10 +130,11 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:
   <header class="hero">
     <div class="bulb" aria-hidden="true"><i></i></div>
     <div class="hero-in">
-      <div class="brand"><img src="icons/icon-192.png" alt=""><div><b>Тембр</b><span>радио · музыка · тв · кино</span></div></div>
+      <a class="brand" href="./" title="Открыть Тембр"><img src="icons/icon-192.png" alt=""><div><b>Тембр</b><span>радио · музыка · тв · кино</span></div></a>
       <h1>Всё, что звучит, в одном приложении</h1>
       <p class="lead">Радио со всего мира, татарская, башкирская и турецкая музыка, концерты без потерь качества, телеканалы и классика кино. Бесплатно, без регистрации и рекламы.</p>
-      <div class="feats"><span>Бесплатно</span><span>Без регистрации</span><span>Работает в России</span><span>iPhone и Android</span></div>
+      <nav class="feats" aria-label="Разделы Тембра"><a href="./#radio">Радио</a><a href="./#tv">Телеканалы</a><a href="./#films">Кино</a><a href="./#tatar">Народная музыка</a><a href="./#lossless">Без потерь</a></nav>
+      <div class="badges"><span>Бесплатно</span><span>Без регистрации</span><span>iPhone и Android</span></div>
     </div>
   </header>
 
@@ -174,10 +181,10 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rivet);color:
   </section>
 
   <section class="inside" aria-label="Что внутри">
-    <div><b>Радио</b><span>Тысячи станций: татарские, башкирские, турецкие, российские и мировые.</span></div>
-    <div><b>Музыка</b><span>Концерты в FLAC без потерь, народная музыка и архивные записи.</span></div>
-    <div><b>Телеканалы</b><span>Открытые каналы со всего мира, поиск и любимые.</span></div>
-    <div><b>Кино</b><span>Советская классика с официальных каналов студий и мировая классика.</span></div>
+    <a href="./#radio"><b>Радио →</b><span>Тысячи станций: татарские, башкирские, турецкие, российские и мировые.</span></a>
+    <a href="./#lossless"><b>Музыка →</b><span>Концерты в FLAC без потерь, народная музыка и архивные записи.</span></a>
+    <a href="./#tv"><b>Телеканалы →</b><span>Открытые каналы со всего мира, поиск и любимые.</span></a>
+    <a href="./#films"><b>Кино →</b><span>Советская классика с официальных каналов студий и мировая классика.</span></a>
   </section>
 
   <footer>
