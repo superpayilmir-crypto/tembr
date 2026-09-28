@@ -273,6 +273,10 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .unmute{position:absolute;left:12px;bottom:46px;z-index:3;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;background:var(--edison);color:var(--edison-ink);font-family:var(--display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:up .3s ease-out}
 .unmute svg{width:18px;height:18px}
 .screen-note{padding:10px 16px;color:var(--ash);font-size:13.5px;min-height:20px}
+.sc-browse{display:flex;flex-direction:column;gap:10px;padding:4px 16px 12px}
+.sc-browse .chips{padding-bottom:2px}
+.sc-search{height:46px;max-width:none}
+.sc-search svg{width:18px;height:18px;color:var(--smoke);flex:none}
 .strip-head{display:flex;align-items:baseline;justify-content:space-between;padding:4px 16px 8px}
 .strip-head span{font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:16px}
 .strip-head small{font-family:var(--mono);font-size:11px;color:var(--smoke)}
@@ -562,7 +566,11 @@ body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
   </div>
   <div class="screen-scroll" id="scScroll">
     <div class="screen-note" id="scNote"></div>
-    <div class="strip-head" id="stripHead" hidden><span>Каналы</span><small id="stripCount"></small></div>
+    <div class="sc-browse" id="scBrowse" hidden>
+      <div class="chips" id="scChips" role="group" aria-label="Подборки каналов"></div>
+      <label class="search sc-search"><svg><use href="#i-search"/></svg><input id="scq" type="search" placeholder="Найти другой канал" autocomplete="off"></label>
+    </div>
+    <div class="strip-head" id="stripHead" hidden><span id="stripTitle">Каналы</span><small id="stripCount"></small></div>
     <div class="strip" id="scStrip"></div>
   </div>
 </section>
@@ -1360,16 +1368,52 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     btn.setAttribute("aria-pressed", on);
     $("#scFavIcon").setAttribute("href", on ? "#i-heart-f" : "#i-heart");
   }
+  let scBrowse = null, scBrowseTitle = "Каналы";
+  const curUrl = () => scList && scList[scIdx] ? scList[scIdx].url : "";
+  function drawChips(){
+    $("#scChips").innerHTML = Object.entries(CHANNELS).map(([k, c]) =>
+      `<button class="chip" data-schan="${k}" aria-pressed="${k === (S.chan || "ru")}">${c.fav ? "♥ " : ""}${c.nav}</button>`).join("");
+  }
   function drawStrip(){
     const st = $("#scStrip"), head = $("#stripHead");
-    if (!scList || scList.length < 2){ st.innerHTML = ""; head.hidden = true; return; }
-    head.hidden = false; $("#stripCount").textContent = `${scIdx + 1} из ${scList.length}`;
-    S.lists.tv = scList;
+    const list = scBrowse || scList;
+    $("#scBrowse").hidden = !scList;
+    if (!list || !list.length){ st.innerHTML = scList ? `<div class="status">Каналов не нашлось.</div>` : ""; head.hidden = !scList; $("#stripCount").textContent = ""; return; }
+    head.hidden = false;
+    $("#stripTitle").textContent = scBrowseTitle;
+    $("#stripCount").textContent = `${list.length} ${list.length % 10 === 1 && list.length % 100 !== 11 ? "канал" : [2,3,4].includes(list.length % 10) && ![12,13,14].includes(list.length % 100) ? "канала" : "каналов"}`;
+    S.lists.tv = list;
     const y = $("#scScroll").scrollTop;
-    st.innerHTML = scList.map(tvCard).join("");
+    st.innerHTML = list.map(tvCard).join("");
     $("#scScroll").scrollTop = y;
-    const cur = st.querySelector(`.tv[data-tv="${scIdx}"]`); if (cur) cur.classList.add("cur");
+    const cu = curUrl();
+    st.querySelectorAll(".tv").forEach((el, i) => { if (list[i] && list[i].url === cu) el.classList.add("cur"); });
+    checkHealth(list);
   }
+  async function browseChannels(k){
+    S.chan = k; drawChips();
+    const C = CHANNELS[k] || CHANNELS.ru;
+    scBrowseTitle = C.nav; $("#scq").value = "";
+    $("#scStrip").innerHTML = skelCards(6, "strip");
+    try {
+      let list = await C.load();
+      const seen = new Set(); list = list.filter(c => { const key = c.title.replace(/\s*\(.*$/, "").toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; });
+      scBrowse = C.keepOrder ? list.slice(0, 150) : byHealth(list.slice(0, 150));
+    } catch (e) { scBrowse = []; }
+    drawStrip();
+  }
+  let scqT = null;
+  $("#scq").addEventListener("input", e => {
+    const q = e.target.value.trim(); clearTimeout(scqT);
+    scqT = setTimeout(async () => {
+      if (!q){ browseChannels(S.chan || "ru"); return; }
+      scBrowseTitle = `Поиск: ${q}`;
+      $("#scStrip").innerHTML = `<div class="status">Ищу «${esc(q)}»…</div>`;
+      try { const all = await TV.all(); if ($("#scq").value.trim() !== q) return; scBrowse = byHealth(tvSort(all, q).slice(0, 80)); }
+      catch { scBrowse = []; }
+      drawStrip();
+    }, 350);
+  });
   function playChannel(i, auto){
     if (!scList || !scList.length) return;
     scIdx = (i + scList.length) % scList.length;
@@ -1503,7 +1547,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     }
   });
 
-  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; $("#scFav").hidden = true; stage.classList.remove("on", "idle"); clearTimeout(ovT); try { if (document.fullscreenElement) document.exitFullscreen(); } catch {} }
+  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; scBrowse = null; $("#scq").value = ""; $("#scFav").hidden = true; stage.classList.remove("on", "idle"); clearTimeout(ovT); try { if (document.fullscreenElement) document.exitFullscreen(); } catch {} }
 
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
@@ -1574,7 +1618,8 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (d.chan){ S.chan = d.chan; S.cq = ""; S.tvAll = null; render(); return; }
     if (d.tvfav !== undefined){ e.stopPropagation(); toggleTvFav(S.lists.tv?.[+d.tvfav]); return; }
     if (d.scfav !== undefined){ toggleTvFav(scList && scList[scIdx]); return; }
-    if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ scList = L.slice(); playChannel(+d.tv, false); } return; }
+    if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ const inPlayer = !$("#screen").hidden; scList = L; scTries = 0; video.muted = false; hideUnmute(); if (!inPlayer){ scBrowse = L; scBrowseTitle = (CHANNELS[S.chan] || {}).nav || "Каналы"; drawChips(); } playChannel(+d.tv, inPlayer); } return; }
+    if (d.schan){ browseChannels(d.schan); return; }
     if (d.vtoggle !== undefined){ toggleVideo(); return; }
     if (d.vunmute !== undefined){ video.muted = false; setMuteIcon(); hideUnmute(); if (video.paused) video.play().catch(() => {}); showOv(); return; }
     if (d.vmute !== undefined){ video.muted = !video.muted; setMuteIcon(); showOv(); return; }
