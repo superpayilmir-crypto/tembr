@@ -164,6 +164,12 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void setAlarm(double at) { AlarmReceiver.schedule(MainActivity.this, (long) at); }
+
+        @JavascriptInterface
+        public void cancelAlarm() { AlarmReceiver.cancel(MainActivity.this); }
+
+        @JavascriptInterface
         public void onVideo(boolean playing) {
             videoPlaying = playing;
             ui.post(MainActivity.this::updatePip);

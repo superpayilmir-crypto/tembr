@@ -347,6 +347,22 @@ body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
 }
 .nav button:active,.tile:active,.tv:active,.chip:active,.seg button:active,.tabs button:active{opacity:.75}
 
+.alarmbar{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--edison);background:linear-gradient(90deg,var(--glow),transparent 80%)}
+.alarmbar svg{width:24px;height:24px;color:var(--edison);flex:none}
+.alarmbar .ti{flex:1;min-width:0}
+.alarmbar b{font-family:var(--display);font-size:22px;letter-spacing:.04em;font-weight:600;color:var(--edison)}
+.alarmbar .btn{height:38px;padding:0 12px;font-size:12px}
+.alarmbar.warn{border-color:#c9573a;background:rgba(201,87,58,.12)}
+.alarmbar.warn b{color:#e38a67}
+.aform{display:flex;flex-direction:column;gap:14px}
+.aform label{display:flex;flex-direction:column;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash)}
+.aform input[type=time],.aform select{font:600 16px var(--body);color:var(--bone);background:var(--steel);border:1px solid var(--rivet);padding:12px;width:100%;border-radius:0;-webkit-appearance:none;appearance:none}
+.aform input[type=time]{font:600 34px var(--display);letter-spacing:.04em;text-align:center;color:var(--edison)}
+.aform .row2{display:flex;gap:10px;flex-wrap:wrap}
+.aform .tog{flex-direction:row;align-items:center;gap:10px;text-transform:none;letter-spacing:0;font-family:var(--body);font-size:14px;color:var(--bone)}
+.aform .tog input{width:22px;height:22px;accent-color:var(--edison)}
+.aform .hint{font-size:13px;color:var(--ash);line-height:1.5;border-left:3px solid var(--brick);padding-left:10px}
+
 /* ---------- sheet (queue / sleep) ---------- */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30}
 .sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);max-height:72vh;overflow:auto;background:var(--iron);border:1px solid var(--rivet);border-bottom:0;z-index:31;padding:18px 18px calc(18px + var(--sab));display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
@@ -428,6 +444,7 @@ body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
   <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
   <symbol id="i-fs" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
   <symbol id="i-mute" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></g></symbol>
+  <symbol id="i-alarm" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M5 3L2 6M19 3l3 3"/></g></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
 </svg>
 
@@ -576,6 +593,7 @@ body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
 </section>
 <div class="toast" id="toast" hidden></div>
 <audio id="audio" preload="auto"></audio>
+<audio id="keep" loop playsinline preload="auto"></audio>
 
 <script>
 (() => {
@@ -1022,7 +1040,9 @@ body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
       const R = STATIONS[S.station] || STATIONS.tatar;
       page.innerHTML = `
         <div class="sec"><span class="tag">Прямой эфир · Radio Browser</span><h1>Радио</h1>
-          <p class="lead">Тысячи открытых радиостанций со всего мира. Работают в России без VPN. Станции сами выбирают, что крутить: современные хиты, народную музыку, новости.</p></div>
+          <p class="lead">Тысячи открытых радиостанций со всего мира. Работают в России без VPN. Станции сами выбирают, что крутить: современные хиты, народную музыку, новости.</p>
+          <div class="actions"><button class="btn ghost" data-alarm-open>${icon("i-alarm")}Будильник-радио</button></div></div>
+        <div id="alarmSlot">${alarmBar()}</div>
         <div class="seg" role="group" aria-label="Страна или язык">${Object.entries(STATIONS).map(([k, r]) => { const n = S.favs.filter(t => t.live).length; return `<button data-station="${k}" aria-pressed="${k === S.station}"${r.fav ? ` class="favchip"` : ""}>${r.fav ? icon("i-heart-f") : ""}${r.nav}${r.fav && n ? ` · ${n}` : ""}</button>`; }).join("")}</div>
         <label class="search">${icon("i-search")}<input id="rq" type="search" placeholder="Название станции, например Tatar Radiosy" value="${esc(S.rq || "")}" autocomplete="off"></label>
         <section class="sec" id="rList">${skelRows(10)}</section>`;
@@ -1549,6 +1569,105 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
 
   function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; scBrowse = null; $("#scq").value = ""; $("#scFav").hidden = true; stage.classList.remove("on", "idle"); clearTimeout(ovT); try { if (document.fullscreenElement) document.exitFullscreen(); } catch {} }
 
+  /* ---------- будильник-радио ---------- */
+  // время всегда считаем по Уфе (UTC+5), независимо от часового пояса телефона
+  const UFA_OFFSET = 5 * 60;
+  function nextUfa(hh, mm, from = Date.now()){
+    const nowUfa = new Date(from + UFA_OFFSET * 60000);
+    let t = Date.UTC(nowUfa.getUTCFullYear(), nowUfa.getUTCMonth(), nowUfa.getUTCDate(), hh, mm) - UFA_OFFSET * 60000;
+    if (t <= from + 15000) t += 86400000;
+    return t;
+  }
+  const ufaNow = () => { const d = new Date(Date.now() + UFA_OFFSET * 60000); return String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
+  let alarm = store.get("tembr.alarm", null);   // { at, hh, mm, daily, station:{...track} }
+  let keepArmed = false;
+  const keep = $("#keep");
+  // тишина: 2 секунды пустого звука, по кругу — держит звуковой канал открытым на заблокированном экране
+  keep.src = (() => { const sr = 8000, n = sr * 2, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+    const w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([b], { type: "audio/wav" })); })();
+  keep.volume = 0.01;
+  const fmtAt = ms => { const d = new Date(ms + UFA_OFFSET * 60000); return String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
+  function leftText(ms){ const m = Math.max(0, Math.round((ms - Date.now()) / 60000)); const h = Math.floor(m / 60); return h ? `через ${h} ч ${m % 60} мин` : `через ${m} мин`; }
+  function alarmBar(){
+    if (!alarm) return "";
+    const ready = keepArmed || native;
+    return `<div class="alarmbar${ready ? "" : " warn"}">${icon("i-alarm")}
+      <div class="ti"><b>${fmtAt(alarm.at)}</b> <span style="color:var(--ash);font-size:13px">по Уфе · ${leftText(alarm.at)}${alarm.daily ? " · каждый день" : ""}</span>
+        <span>${esc(alarm.station.title)}${ready ? "" : " · нажмите «Включить», чтобы будильник сработал"}</span></div>
+      ${ready ? "" : `<button class="btn primary" data-alarm-arm>Включить</button>`}
+      <button class="btn ghost" data-alarm-off>Отменить</button></div>`;
+  }
+  function refreshAlarmUI(){ const slot = $("#alarmSlot"); if (slot) slot.innerHTML = alarmBar(); }
+  function armKeepAlive(){
+    // вызывается из нажатия пользователя: телефон разрешает звук только после касания
+    if (!alarm) return;
+    keepArmed = true;
+    if (audio.paused) keep.play().catch(() => { keepArmed = false; refreshAlarmUI(); });
+    if (native) try { native.setAlarm(alarm.at); } catch {}
+    if ("mediaSession" in navigator && audio.paused) try { navigator.mediaSession.metadata = new MediaMetadata({ title: `Будильник ${fmtAt(alarm.at)}`, artist: alarm.station.title + " · Тембр" }); } catch {}
+    refreshAlarmUI();
+  }
+  function disarm(){
+    alarm = null; store.set("tembr.alarm", null); keepArmed = false; keep.pause();
+    if (native) try { native.cancelAlarm(); } catch {}
+    refreshAlarmUI();
+  }
+  audio.addEventListener("play", () => { if (!keep.paused) keep.pause(); });
+  audio.addEventListener("pause", () => { if (alarm && keepArmed) keep.play().catch(() => {}); });
+  let fading = null;
+  function alarmFire(){
+    if (!alarm) return;
+    const st = alarm.station, target = store.get("tembr.vol", 90) / 100;
+    if (alarm.daily){ alarm.at = nextUfa(alarm.hh, alarm.mm, Date.now() + 60000); store.set("tembr.alarm", alarm); if (native) try { native.setAlarm(alarm.at); } catch {} }
+    else disarm();
+    keep.pause();
+    // плавно прибавляем громкость за минуту
+    audio.volume = Math.min(0.15, target);
+    const favR = S.favs.filter(t => t.live && t.id !== st.id);
+    setQueue([st, ...favR], 0);
+    clearInterval(fading);
+    fading = setInterval(() => { audio.volume = Math.min(target, audio.volume + target / 30); if (audio.volume >= target) clearInterval(fading); }, 2000);
+    toast("Доброе утро! Будильник: " + st.title);
+    refreshAlarmUI();
+  }
+  function alarmCheck(){ if (alarm && Date.now() >= alarm.at) alarmFire(); }
+  setInterval(alarmCheck, 5000);
+  keep.addEventListener("timeupdate", alarmCheck);   // срабатывает и на заблокированном экране, пока идёт «тишина»
+  document.addEventListener("visibilitychange", alarmCheck);
+  if (alarm && alarm.at < Date.now() - 10 * 60000){ if (alarm.daily){ alarm.at = nextUfa(alarm.hh, alarm.mm); store.set("tembr.alarm", alarm); } else { alarm = null; store.set("tembr.alarm", null); } }
+
+  function openAlarm(){
+    const radioNow = cur() && cur().live ? [cur()] : [];
+    const pool = []; const seen = new Set();
+    [...radioNow, ...(alarm ? [alarm.station] : []), ...S.favs.filter(t => t.live), ...S.history.filter(t => t.live), ...(S.lists.radio || [])].forEach(t => { if (t && !seen.has(t.id)) { seen.add(t.id); pool.push(t); } });
+    S.alarmPool = pool.slice(0, 80);
+    const defT = alarm ? `${String(alarm.hh).padStart(2, "0")}:${String(alarm.mm).padStart(2, "0")}` : "07:00";
+    openSheet("alarm", `<div class="sec-head"><h2>Будильник-радио</h2><button class="link" data-close-sheet>Закрыть</button></div>
+      ${pool.length ? `<form class="aform" id="aform">
+        <label>Время по Уфе (сейчас ${ufaNow()})<input type="time" id="aTime" value="${defT}" required></label>
+        <label>Станция<select id="aStation">${S.alarmPool.map((t, i) => `<option value="${i}"${alarm && alarm.station.id === t.id ? " selected" : ""}>${esc(t.title)}${t.artist ? " — " + esc(t.artist.split(" · ")[0]) : ""}</option>`).join("")}</select></label>
+        <label class="tog"><input type="checkbox" id="aDaily"${alarm && alarm.daily ? " checked" : ""}>Повторять каждый день</label>
+        <p class="hint">Не закрывайте Тембр: просто заблокируйте телефон и положите рядом. Громкость звука мультимедиа должна быть не на нуле. Станция включится тихо и за минуту станет громче.</p>
+        <div class="row2"><button class="btn primary" type="submit">${icon("i-alarm")}Поставить будильник</button>${alarm ? `<button class="btn ghost" type="button" data-alarm-off>Отменить</button>` : ""}</div>
+      </form>` : `<p class="lead" style="font-size:14px">Сначала выберите станцию: включите любую в списке или отметьте ♡, и она появится здесь.</p>`}`);
+    const f = $("#aform");
+    if (f) f.addEventListener("submit", e => {
+      e.preventDefault();
+      const [hh, mm] = $("#aTime").value.split(":").map(Number);
+      const st = S.alarmPool[+$("#aStation").value];
+      if (isNaN(hh) || !st) return;
+      alarm = { hh, mm, at: nextUfa(hh, mm), daily: $("#aDaily").checked, station: st };
+      store.set("tembr.alarm", alarm);
+      closeSheet(); armKeepAlive();
+      toast(`Будильник на ${fmtAt(alarm.at)} по Уфе, ${leftText(alarm.at)}`);
+    });
+  }
+  setInterval(refreshAlarmUI, 60000);
+  if (alarm && native) try { native.setAlarm(alarm.at); } catch {}
+
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
     const sh = $("#sheet"); sh.dataset.kind = kind; sh.innerHTML = html; sh.hidden = false; $("#scrim").hidden = false;
@@ -1627,6 +1746,9 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (d.scNext !== undefined){ scTries = 0; playChannel(scIdx + 1, true); return; }
     if (d.scPrev !== undefined){ scTries = 0; playChannel(scIdx - 1, true); return; }
     if (d.film){ const id = d.film; scList = null; toast("Открываю фильм…"); Films.file(id).then(f => openScreen({ title: f.title, sub: [f.year, f.lang].filter(Boolean).join(" · "), src: f.src })).catch(e => toast("Не удалось открыть: " + e.message)); return; }
+    if (d.alarmOpen !== undefined){ openAlarm(); return; }
+    if (d.alarmArm !== undefined){ armKeepAlive(); return; }
+    if (d.alarmOff !== undefined){ disarm(); closeSheet(); toast("Будильник отменён"); return; }
     if (d.station){ S.station = d.station; S.rq = ""; render(); return; }
     if (d.region){ S.region = d.region; S.tq = ""; render(); return; }
     if (d.genre !== undefined){ S.genre = d.genre; render(); return; }
@@ -1673,7 +1795,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
 
   // команды из Android-уведомления
   const videoActive = () => !$("#screen").hidden && (video.getAttribute("src") || hls);
-  window.tembr = { cmd(a){ if (videoActive()){ if (a === "toggle") video.paused ? video.play() : video.pause(); else if (a === "pause") video.pause(); else if (a === "next" && scList) playChannel(scIdx + 1, true); else if (a === "prev" && scList) playChannel(scIdx - 1, true); return; } if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
+  window.tembr = { cmd(a){ if (a === "alarm"){ if (alarm && Date.now() >= alarm.at - 120000) alarmFire(); return; } if (videoActive()){ if (a === "toggle") video.paused ? video.play() : video.pause(); else if (a === "pause") video.pause(); else if (a === "next" && scList) playChannel(scIdx + 1, true); else if (a === "prev" && scList) playChannel(scIdx - 1, true); return; } if (a === "toggle") toggle(); else if (a === "next") next(false); else if (a === "prev") prev(); else if (a === "pause") audio.pause(); },
                    pip(on){ document.body.classList.toggle("pipmode", !!on); },
                    back(){ if (!$("#screen").hidden){ closeScreen(); return true; } if (!$("#sheet").hidden){ closeSheet(); return true; } if (!$("#full").hidden){ closeFull(); return true; } if (S.view !== "home"){ go(S.view.startsWith("album:") ? S.prevView : "home"); return true; } return false; } };
 
