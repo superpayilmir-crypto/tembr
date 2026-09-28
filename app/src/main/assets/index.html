@@ -43,7 +43,7 @@ a{color:inherit}
 .app{height:100%;display:grid;grid-template-columns:248px 1fr;grid-template-rows:1fr auto;padding-top:var(--sat)}
 .side{grid-row:1/3;background:var(--iron);border-right:1px solid var(--rivet);padding:24px 16px calc(24px + var(--sab));display:flex;flex-direction:column;gap:28px;position:relative}
 .side::after{content:"";position:absolute;top:0;right:-1px;width:1px;height:100%;background:linear-gradient(var(--rivet),transparent)}
-.logo{display:flex;align-items:center;gap:11px;padding-inline:6px}
+.side .logo{display:flex;align-items:center;gap:11px;padding-inline:6px}
 .logo-mark{width:34px;height:34px;display:grid;place-items:center;background:var(--brick);position:relative}
 .logo-mark::before,.logo-mark::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:var(--brick-deep);top:3px;left:3px;box-shadow:24px 0 var(--brick-deep),0 24px var(--brick-deep),24px 24px var(--brick-deep)}
 .logo-word{font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
@@ -59,8 +59,8 @@ a{color:inherit}
 .main{grid-column:2;grid-row:1;overflow:auto;min-width:0;scroll-behavior:smooth}
 .page{padding:30px 36px 48px;display:flex;flex-direction:column;gap:34px;max-width:1240px}
 
-.logo{cursor:pointer;color:inherit;-webkit-appearance:none;appearance:none;background:transparent!important;border:0;padding:0;border-radius:0}
-.logo:active{opacity:.7}
+button.logo{cursor:pointer;color:inherit;-webkit-appearance:none;appearance:none;background:transparent;border:0;padding:0;border-radius:0}
+button.logo:active{opacity:.7}
 button,a{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 .logo:hover .logo-word{color:var(--edison)}
 .getapp{position:fixed;top:calc(14px + var(--sat));right:18px;z-index:15;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;background:rgba(20,19,18,.82);border:1px solid var(--edison);color:var(--edison);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;backdrop-filter:blur(6px)}
@@ -223,14 +223,60 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .full-foot{display:flex;justify-content:space-between;align-items:center}
 
 /* ---------- screen (TV / films) ---------- */
-.screen{position:fixed;inset:0;z-index:25;background:#0b0a09;display:flex;flex-direction:column;padding:calc(10px + var(--sat)) 0 var(--sab);animation:up .25s ease-out}
-.screen-top{display:flex;align-items:center;gap:10px;padding:0 12px 10px}
-.screen-top .ti{flex:1}
-.screen video{flex:1;width:100%;min-height:0;background:#000;object-fit:contain}
-.screen-note{padding:12px 16px;color:var(--ash);font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.screen-note .btn{height:38px;padding:0 14px;font-size:13px}
-.screen-wrap{flex:1;min-height:0;position:relative;display:flex;background:#000}
-.screen-wrap video{flex:1;width:100%;height:100%;min-height:200px}
+.screen{position:fixed;inset:0;z-index:25;background:var(--steel) var(--concrete);display:flex;flex-direction:column;padding:var(--sat) 0 var(--sab);animation:up .28s cubic-bezier(.2,.8,.2,1);overflow-y:auto}
+.stage{position:relative;width:100%;aspect-ratio:16/9;max-height:78vh;background:#000;flex:none;overflow:hidden;box-shadow:0 20px 40px -20px rgba(0,0,0,.9)}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0;transition:opacity .5s ease}
+.stage.on video{opacity:1}
+.stage:fullscreen{max-height:none;aspect-ratio:auto;width:100vw;height:100vh}
+.stage:-webkit-full-screen{max-height:none;width:100vw;height:100vh}
+/* заставка до начала показа */
+.poster{position:absolute;inset:0;display:grid;place-items:center;transition:opacity .5s ease;overflow:hidden}
+.stage.on .poster{opacity:0;pointer-events:none}
+.poster-bg{position:absolute;inset:-30px;background:radial-gradient(ellipse 60% 70% at 50% 40%,rgba(243,179,91,.22),transparent 70%),linear-gradient(160deg,#2a1810,#141312 60%);filter:blur(0)}
+.poster-bg.img{background-size:cover;background-position:center;filter:blur(40px) saturate(1.3) brightness(.45)}
+.poster-in{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;padding:52px 16px 12px;text-align:center}
+.poster-logo{width:min(24vw,140px);aspect-ratio:16/10;background:#f1ece4;display:grid;place-items:center;box-shadow:0 18px 40px -12px rgba(0,0,0,.8);animation:breathe 2.4s ease-in-out infinite}
+.poster-logo img{max-width:80%;max-height:80%;object-fit:contain}
+.poster-logo span{font:600 28px var(--display);color:#3b2a20}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.poster-status{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--bone)}
+.poster.fail .poster-logo{animation:none;filter:grayscale(1) opacity(.6)}
+.poster.fail .eqb{display:none}
+.poster-act{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.poster-act .btn{height:40px;padding:0 16px;font-size:13px}
+.eqb{display:inline-flex;gap:3px;align-items:flex-end;height:14px}
+.eqb i{width:3px;background:var(--edison);animation:eq .7s ease-in-out infinite alternate;height:30%}
+.eqb i:nth-child(2){animation-delay:-.2s}.eqb i:nth-child(3){animation-delay:-.45s}.eqb i:nth-child(4){animation-delay:-.1s}.eqb i:nth-child(5){animation-delay:-.35s}
+/* элементы управления поверх видео */
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;opacity:1;transition:opacity .3s ease;background:linear-gradient(180deg,rgba(0,0,0,.65),transparent 32%,transparent 62%,rgba(0,0,0,.7))}
+.stage.idle .ov{opacity:0;pointer-events:none}
+.stage:not(.on) .ov-mid,.stage:not(.on) .ov-bot{visibility:hidden}
+.stage:not(.on) .ov{background:linear-gradient(180deg,rgba(0,0,0,.6),transparent 30%)}
+.stage.idle{cursor:none}
+.ov-top{display:flex;align-items:center;gap:4px;padding:8px 8px 0}
+.ov-top .ti{flex:1;min-width:0;padding-left:4px}
+.ov-top .ti b{font-family:var(--display);text-transform:uppercase;letter-spacing:.04em;font-size:18px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.ov-top .ti>span{display:flex;gap:8px;align-items:center;font-size:12.5px;color:rgba(255,255,255,.75)}
+.live{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:#d2402f;color:#fff;padding:2px 6px;flex:none}
+.ov .ib{color:#fff}
+.ov-mid{display:flex;align-items:center;justify-content:center;gap:34px}
+.ov .ib.big{width:52px;height:52px}
+.ov .ib.big svg{width:28px;height:28px}
+.ovplay{width:66px;height:66px;border-radius:50%;background:rgba(243,179,91,.92);color:var(--edison-ink);display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.ovplay svg{width:28px;height:28px}
+.ov-bot{display:flex;align-items:center;gap:6px;padding:0 8px 6px}
+.vseek{flex:1;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:#fff}
+.vlive{flex:1;display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff}
+.vlive i{width:8px;height:8px;border-radius:50%;background:#e2493a;box-shadow:0 0 0 3px rgba(226,73,58,.3);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(226,73,58,0)}}
+.screen-note{padding:10px 16px;color:var(--ash);font-size:13.5px;min-height:20px}
+.strip-head{display:flex;align-items:baseline;justify-content:space-between;padding:4px 16px 8px}
+.strip-head span{font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:16px}
+.strip-head small{font-family:var(--mono);font-size:11px;color:var(--smoke)}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:0 16px 16px}
+.strip .tv.cur{border-color:var(--edison);box-shadow:0 0 0 1px var(--edison)}
+.strip .tv.cur b::before{content:"▶ ";color:var(--edison)}
+@media (orientation:landscape) and (max-height:520px){ .stage{height:100vh;max-height:none;aspect-ratio:auto} .screen{padding:0} }
 .spin{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .spin i{width:42px;height:42px;border-radius:50%;border:3px solid rgba(243,179,91,.25);border-top-color:var(--edison);animation:rot 1s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -267,10 +313,11 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .official svg{width:26px;height:26px;color:var(--edison);flex:none}
 
 .screen.mini{visibility:hidden;pointer-events:none}
-body.pipmode .screen{padding:0!important;animation:none}
-body.pipmode .screen-top,body.pipmode .screen-note,body.pipmode .spin{display:none!important}
+body.pipmode .screen{padding:0!important;animation:none;overflow:hidden}
+body.pipmode .ov,body.pipmode .screen-note,body.pipmode .spin,body.pipmode .strip,body.pipmode .strip-head{display:none!important}
+body.pipmode .stage{height:100vh;max-height:none;aspect-ratio:auto}
 body.pipmode .app,body.pipmode .full,body.pipmode .toast{display:none!important}
-body.pipmode .screen-wrap video{min-height:0}
+
 .pipbar{display:flex;align-items:center;gap:10px;margin:0 8px 6px;padding:8px 10px;background:var(--iron2);border:1px solid var(--edison);font-size:13px}
 .pipbar b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .pipbar .btn{height:34px;padding:0 12px;font-size:12px}
@@ -372,6 +419,8 @@ body.pipmode .screen-wrap video{min-height:0}
   <symbol id="i-pip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="1"/><rect x="12" y="12" width="8" height="6" fill="currentColor"/></g></symbol>
   <symbol id="i-dl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></g></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+  <symbol id="i-fs" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></g></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
 </svg>
 
@@ -476,15 +525,41 @@ body.pipmode .screen-wrap video{min-height:0}
 <div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" hidden></div>
 <section class="screen" id="screen" hidden aria-label="Просмотр">
-  <div class="screen-top">
-    <div class="ti"><b id="scTitle"></b><span id="scSub"></span></div>
-    <button class="ib" data-act="sleep" title="Таймер сна"><svg><use href="#i-moon"/></svg></button>
-    <button class="ib" data-scfav id="scFav" aria-pressed="false" title="В любимые" hidden><svg><use href="#i-heart" id="scFavIcon"/></svg></button>
-    <button class="ib" data-pip id="pipBtn" title="Маленькое окно" hidden><svg><use href="#i-pip"/></svg></button>
-    <button class="ib" data-close-screen title="Закрыть"><svg><use href="#i-close"/></svg></button>
+  <div class="stage" id="stage">
+    <video id="video" playsinline webkit-playsinline autopictureinpicture x-webkit-airplay="allow" preload="auto"></video>
+    <div class="poster" id="scPoster">
+      <div class="poster-bg" id="scPosterBg"></div>
+      <div class="poster-in">
+        <div class="poster-logo" id="scLogo"></div>
+        <div class="poster-status"><span class="eqb" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span id="scStatus">Подключаюсь к эфиру…</span></div>
+        <div class="poster-act" id="scAct"></div>
+      </div>
+    </div>
+    <div class="spin" id="scSpin" hidden><i></i></div>
+    <div class="ov" id="ov">
+      <div class="ov-top">
+        <button class="ib" data-close-screen title="Свернуть и закрыть"><svg><use href="#i-down"/></svg></button>
+        <div class="ti"><b id="scTitle"></b><span><em class="live" id="scLive">В эфире</em><span id="scSub"></span></span></div>
+        <button class="ib" data-scfav id="scFav" aria-pressed="false" title="В любимые" hidden><svg><use href="#i-heart" id="scFavIcon"/></svg></button>
+        <button class="ib" data-act="sleep" title="Таймер сна"><svg><use href="#i-moon"/></svg></button>
+        <button class="ib" data-pip id="pipBtn" title="Маленькое окно" hidden><svg><use href="#i-pip"/></svg></button>
+      </div>
+      <div class="ov-mid">
+        <button class="ib big" data-sc-prev id="ovPrev" title="Предыдущий канал"><svg><use href="#i-prev"/></svg></button>
+        <button class="ovplay" data-vtoggle title="Пауза / играть"><svg><use href="#i-pause" id="ovPlayIcon"/></svg></button>
+        <button class="ib big" data-sc-next id="ovNext" title="Следующий канал"><svg><use href="#i-next"/></svg></button>
+      </div>
+      <div class="ov-bot">
+        <div class="vseek" id="vseekWrap" hidden><span id="vCur">0:00</span><input type="range" id="vseek" min="0" max="1000" value="0" aria-label="Перемотка"><span id="vDur">0:00</span></div>
+        <div class="vlive" id="vLive"><i></i>Прямой эфир</div>
+        <button class="ib" data-vmute title="Звук"><svg><use href="#i-vol" id="vMuteIcon"/></svg></button>
+        <button class="ib" data-vfs title="Во весь экран"><svg><use href="#i-fs"/></svg></button>
+      </div>
+    </div>
   </div>
-  <div class="screen-wrap"><video id="video" controls playsinline webkit-playsinline autopictureinpicture x-webkit-airplay="allow" preload="auto"></video><div class="spin" id="scSpin" hidden><i></i></div></div>
   <div class="screen-note" id="scNote"></div>
+  <div class="strip-head" id="stripHead" hidden><span>Каналы</span><small id="stripCount"></small></div>
+  <div class="strip" id="scStrip"></div>
 </section>
 <div class="toast" id="toast" hidden></div>
 <audio id="audio" preload="auto"></audio>
@@ -1245,19 +1320,31 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     for (let k = 0; k < 6; k++) worker();
   }
 
-  let scTimer = null, scToken = 0, scList = null, scIdx = -1, scTries = 0;
+  let scTimer = null, scToken = 0, scList = null, scIdx = -1, scTries = 0, scLive = true;
+  const stage = $("#stage");
   function scNote(html){ $("#scNote").innerHTML = html; }
+  function posterState({ logo, title, status, fail, actions }){
+    const P = $("#scPoster");
+    if (title !== undefined){
+      $("#scLogo").innerHTML = logo && logo.startsWith("https") ? `<img src="${esc(logo)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:${JSON.stringify((title || "").slice(0, 2).toUpperCase())}}))">` : `<span>${esc((title || "?").slice(0, 2).toUpperCase())}</span>`;
+      const bg = $("#scPosterBg");
+      if (logo && logo.startsWith("https")){ bg.classList.add("img"); bg.style.backgroundImage = `url("${logo.replace(/"/g, "%22")}")`; } else { bg.classList.remove("img"); bg.style.backgroundImage = ""; }
+    }
+    if (status !== undefined) $("#scStatus").textContent = status;
+    P.classList.toggle("fail", !!fail);
+    $("#scAct").innerHTML = actions || "";
+  }
   function scFail(reason){
     const my = scToken;
-    $("#scSpin").hidden = true;
+    $("#scSpin").hidden = true; stage.classList.remove("on"); showOv(true);
     const c = scList && scList[scIdx];
     if (c) TV.health[c.url] = "off";
     if (scList && scTries < 4){
       scTries++;
-      scNote(`${esc(reason)} Включаю следующий канал…`);
-      setTimeout(() => { if (my === scToken) playChannel(scIdx + 1, true); }, 1200);
+      posterState({ status: reason + " Включаю следующий…", fail: true });
+      setTimeout(() => { if (my === scToken) playChannel(scIdx + 1, true); }, 1400);
     } else {
-      scNote(`${esc(reason)} <button class="btn ghost" data-sc-next>Следующий канал</button>`);
+      posterState({ status: reason, fail: true, actions: scList ? `<button class="btn primary" data-sc-next>Следующий канал</button><button class="btn ghost" data-close-screen>Закрыть</button>` : `<button class="btn ghost" data-close-screen>Закрыть</button>` });
     }
   }
   function syncScFav(){
@@ -1268,33 +1355,84 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     btn.setAttribute("aria-pressed", on);
     $("#scFavIcon").setAttribute("href", on ? "#i-heart-f" : "#i-heart");
   }
+  function drawStrip(){
+    const st = $("#scStrip"), head = $("#stripHead");
+    if (!scList || scList.length < 2){ st.innerHTML = ""; head.hidden = true; return; }
+    head.hidden = false; $("#stripCount").textContent = `${scIdx + 1} из ${scList.length}`;
+    S.lists.tv = scList;
+    st.innerHTML = scList.map(tvCard).join("");
+    const cur = st.querySelector(`.tv[data-tv="${scIdx}"]`); if (cur) cur.classList.add("cur");
+  }
   function playChannel(i, auto){
     if (!scList || !scList.length) return;
     scIdx = (i + scList.length) % scList.length;
     const c = scList[scIdx];
     if (!auto) scTries = 0;
-    openScreen({ title: c.title, sub: c.group, src: c.url, live: true, keepHistory: auto });
-    syncScFav();
+    openScreen({ title: c.title, sub: c.group, src: c.url, live: true, logo: c.logo, keepHistory: auto });
+    syncScFav(); drawStrip();
   }
-  async function openScreen({ title, sub, src, live, keepHistory }){
+  // показ/скрытие панели управления
+  let ovT = null;
+  function showOv(stay){
+    stage.classList.remove("idle"); clearTimeout(ovT);
+    if (!stay && !video.paused) ovT = setTimeout(() => { if (!video.paused) stage.classList.add("idle"); }, 3200);
+  }
+  stage.addEventListener("click", e => {
+    if (e.target.closest("button, input")) { showOv(); return; }
+    if (stage.classList.contains("idle")) showOv(); else if (!video.paused) { stage.classList.add("idle"); clearTimeout(ovT); }
+  });
+  stage.addEventListener("mousemove", () => showOv());
+  function toggleVideo(){ if (video.paused) video.play().catch(() => {}); else video.pause(); showOv(); }
+  function toggleFs(){
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+      if (stage.requestFullscreen) stage.requestFullscreen().catch(() => video.webkitEnterFullscreen && video.webkitEnterFullscreen());
+      else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
+      else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+    } catch {}
+    showOv();
+  }
+  function setMuteIcon(){ $("#vMuteIcon").setAttribute("href", video.muted ? "#i-mute" : "#i-vol"); }
+  video.addEventListener("play", () => { $("#ovPlayIcon").setAttribute("href", "#i-pause"); showOv(); });
+  video.addEventListener("pause", () => { $("#ovPlayIcon").setAttribute("href", "#i-play"); showOv(true); });
+  // перемотка для фильмов
+  const vseek = $("#vseek"); let vSeeking = false;
+  video.addEventListener("timeupdate", () => {
+    if (scLive || vSeeking || !video.duration || !isFinite(video.duration)) return;
+    vseek.value = video.currentTime / video.duration * 1000; paint(vseek);
+    $("#vCur").textContent = fmt(video.currentTime);
+  });
+  video.addEventListener("loadedmetadata", () => { if (!scLive && isFinite(video.duration)) $("#vDur").textContent = fmt(video.duration); });
+  vseek.addEventListener("input", () => { vSeeking = true; paint(vseek); if (video.duration) $("#vCur").textContent = fmt(vseek.value / 1000 * video.duration); showOv(); });
+  vseek.addEventListener("change", () => { if (video.duration) video.currentTime = vseek.value / 1000 * video.duration; vSeeking = false; });
+
+  async function openScreen({ title, sub, src, live, logo, keepHistory }){
     const my = ++scToken;
     audio.pause();
+    scLive = !!live;
     $("#scTitle").textContent = title; $("#scSub").textContent = sub || "";
-    scNote(live ? "Подключаюсь к эфиру…" : "Загружаю фильм…");
-    $("#scSpin").hidden = false;
+    $("#scLive").hidden = !live; $("#vLive").hidden = !live; $("#vseekWrap").hidden = !!live;
+    $("#ovPrev").hidden = $("#ovNext").hidden = !scList;
+    if (!live){ vseek.value = 0; paint(vseek); $("#vCur").textContent = "0:00"; $("#vDur").textContent = "…"; }
+    stage.classList.remove("on", "idle");
+    posterState({ logo, title, status: live ? `Подключаюсь к «${title}»…` : "Загружаю фильм…" });
+    $("#scSpin").hidden = true;
+    scNote("");
+    if (!scList){ $("#scStrip").innerHTML = ""; $("#stripHead").hidden = true; }
     if ($("#screen").hidden){ $("#screen").hidden = false; if (!keepHistory) history.pushState({ screen: 1 }, ""); }
     if (hls){ hls.destroy(); hls = null; }
     clearTimeout(scTimer);
     scTimer = setTimeout(() => { if (my === scToken && (video.paused || video.readyState < 3)) scFail(live ? "Канал не отвечает." : "Фильм долго не загружается."); }, live ? 15000 : 25000);
     const isHls = /\.m3u8(\?|$)/i.test(src);
     const native = !!video.canPlayType("application/vnd.apple.mpegurl");
+    const needTap = () => { posterState({ status: "Нажмите, чтобы включить", actions: `<button class="btn primary" data-vtoggle>▶ Смотреть</button>` }); };
     const useHlsJs = async () => {
       const Hls = await loadHlsLib();
       if (my !== scToken) return;
       if (!Hls || !Hls.isSupported()) return scFail("Этот браузер не умеет показывать такой поток.");
       hls = new Hls({ enableWorker: true, lowLatencyMode: false, manifestLoadingMaxRetry: 2, levelLoadingMaxRetry: 2 });
       hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal && my === scToken) scFail("Канал сейчас не вещает или закрыт для вашей страны."); });
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (my === scToken) video.play().catch(() => scNote("Нажмите ▶ на плеере, чтобы включить.")); });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (my === scToken) video.play().catch(needTap); });
       hls.loadSource(src); hls.attachMedia(video);
     };
     video.onerror = () => {
@@ -1305,15 +1443,14 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     try {
       if (!isHls || native){
         video.src = src;
-        video.play().catch(err => { if (err.name === "NotAllowedError") { $("#scSpin").hidden = true; scNote("Нажмите ▶ на плеере, чтобы включить."); } });
+        video.play().catch(err => { if (err.name === "NotAllowedError") needTap(); });
       } else await useHlsJs();
     } catch (e) { scFail("Не удалось открыть: " + e.message); }
   }
   video.addEventListener("playing", () => { clearTimeout(scTimer); $("#scSpin").hidden = true; scTries = 0;
-    if (scList && scList[scIdx]) pushTvRecent(scList[scIdx]);
-    const c = scList && scList[scIdx]; if (c && c.url === (hls ? hls.url : video.currentSrc) ) TV.health[c.url] = "ok";
-    scNote(scList ? `В эфире. <button class="btn ghost" data-sc-prev>← Предыдущий</button><button class="btn ghost" data-sc-next>Следующий →</button>` : ""); });
-  video.addEventListener("waiting", () => { if (!$("#screen").hidden) $("#scSpin").hidden = false; });
+    stage.classList.add("on"); posterState({ fail: false }); showOv();
+    if (scList && scList[scIdx]) { pushTvRecent(scList[scIdx]); TV.health[scList[scIdx].url] = "ok"; } });
+  video.addEventListener("waiting", () => { if (!$("#screen").hidden && stage.classList.contains("on")) $("#scSpin").hidden = false; });
   // ---- «картинка в картинке» ----
   const pipSupported = () => !!(document.pictureInPictureEnabled || (video.webkitSupportsPresentationMode && video.webkitSupportsPresentationMode("picture-in-picture")));
   const inWebPip = () => document.pictureInPictureElement === video || video.webkitPresentationMode === "picture-in-picture";
@@ -1347,7 +1484,7 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     }
   });
 
-  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; $("#scFav").hidden = true; }
+  function closeScreen(){ ++scToken; if (inWebPip()) { try { document.exitPictureInPicture ? document.exitPictureInPicture().catch(() => {}) : video.webkitSetPresentationMode("inline"); } catch {} } $("#screen").classList.remove("mini"); if (native) try { native.onVideo(false); } catch {} clearTimeout(scTimer); video.onerror = null; video.pause(); if (hls){ hls.destroy(); hls = null; } video.removeAttribute("src"); video.load(); $("#screen").hidden = true; $("#scSpin").hidden = true; scList = null; $("#scFav").hidden = true; stage.classList.remove("on", "idle"); clearTimeout(ovT); try { if (document.fullscreenElement) document.exitFullscreen(); } catch {} }
 
   /* ---------- sheets: queue & sleep ---------- */
   function openSheet(kind, html){
@@ -1419,6 +1556,9 @@ ${tvCard(c, i)}`).join("")}</div>` : `<div class="status">Телеканалов
     if (d.tvfav !== undefined){ e.stopPropagation(); toggleTvFav(S.lists.tv?.[+d.tvfav]); return; }
     if (d.scfav !== undefined){ toggleTvFav(scList && scList[scIdx]); return; }
     if (d.tv !== undefined){ const L = S.lists.tv || []; if (L[+d.tv]){ scList = L.slice(); playChannel(+d.tv, false); } return; }
+    if (d.vtoggle !== undefined){ toggleVideo(); return; }
+    if (d.vmute !== undefined){ video.muted = !video.muted; setMuteIcon(); showOv(); return; }
+    if (d.vfs !== undefined){ toggleFs(); return; }
     if (d.scNext !== undefined){ scTries = 0; playChannel(scIdx + 1, true); return; }
     if (d.scPrev !== undefined){ scTries = 0; playChannel(scIdx - 1, true); return; }
     if (d.film){ const id = d.film; scList = null; toast("Открываю фильм…"); Films.file(id).then(f => openScreen({ title: f.title, sub: [f.year, f.lang].filter(Boolean).join(" · "), src: f.src })).catch(e => toast("Не удалось открыть: " + e.message)); return; }
